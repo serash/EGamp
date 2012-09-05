@@ -1,0 +1,50 @@
+﻿<RecentFiles>
+  <RecentFiles>
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/f:EGamp.ini" caret="0" fromTop="0" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Visualization/f:SpectrumAnalyser.xaml.cs" caret="174" fromTop="6" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/f:MainWindow.xaml.cs" caret="675" fromTop="8" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/f:App.config" caret="0" fromTop="0" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/f:App.xaml" caret="1" fromTop="0" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/f:App.xaml.cs" caret="667" fromTop="25" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Visualization/f:IWaveFormRenderer.cs" caret="0" fromTop="0" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/f:Logger.cs" caret="443" fromTop="17" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Visualization/f:IVisualizationPlugin.cs" caret="454" fromTop="15" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Visualization/f:SpectrumAnalyser.xaml" caret="1" fromTop="0" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Visualization/f:SpectrumAnalyzerVisualization.cs" caret="437" fromTop="17" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/f:RelayCommand.cs" caret="168" fromTop="9" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Visualization/f:PolylineWaveFormControl.xaml" caret="1" fromTop="0" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Visualization/f:PolylineWaveFormVisualization.cs" caret="167" fromTop="8" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/f:SampleAggregator.cs" caret="809" fromTop="0" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Visualization/f:PolylineWaveFormControl.xaml.cs" caret="0" fromTop="0" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/f:Configuration.cs" caret="137" fromTop="5" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Effects/f:IEffect.cs" caret="179" fromTop="9" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/f:MainWindow.xaml" caret="1566" fromTop="3" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Effects/f:Amplifier.cs" caret="388" fromTop="19" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Effects/f:DefaultWaveProvider.cs" caret="646" fromTop="18" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/f:MainWindowViewModel.cs" caret="3529" fromTop="41" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/f:AudioEngine.cs" caret="2727" fromTop="11" />
+  </RecentFiles>
+  <RecentEdits>
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/f:Configuration.cs" caret="402" fromTop="6" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/f:Logger.cs" caret="432" fromTop="16" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Visualization/f:IVisualizationPlugin.cs" caret="140" fromTop="6" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Visualization/f:IWaveFormRenderer.cs" caret="121" fromTop="5" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Visualization/f:PolylineWaveFormControl.xaml.cs" caret="396" fromTop="14" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Visualization/f:PolylineWaveFormControl.xaml" caret="41" fromTop="0" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Visualization/f:SpectrumAnalyser.xaml" caret="41" fromTop="0" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Visualization/f:SpectrumAnalyser.xaml.cs" caret="237" fromTop="0" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/f:MainWindow.xaml.cs" caret="675" fromTop="8" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/f:App.xaml" caret="224" fromTop="3" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/f:App.xaml.cs" caret="544" fromTop="19" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/f:SampleAggregator.cs" caret="165" fromTop="0" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Visualization/f:PolylineWaveFormVisualization.cs" caret="619" fromTop="23" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/f:MainWindow.xaml" caret="1767" fromTop="5" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Visualization/f:SpectrumAnalyzerVisualization.cs" caret="699" fromTop="29" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/f:MainWindowViewModel.cs" caret="3529" fromTop="24" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/f:RelayCommand.cs" caret="163" fromTop="7" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Effects/f:IEffect.cs" caret="172" fromTop="8" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Effects/f:Amplifier.cs" caret="299" fromTop="15" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Effects/f:DefaultWaveProvider.cs" caret="646" fromTop="18" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/f:AudioEngine.cs" caret="4095" fromTop="27" />
+  </RecentEdits>
+</RecentFiles>

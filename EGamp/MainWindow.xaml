@@ -1,0 +1,33 @@
+﻿<Window x:Class="EGamp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="MainWindow" Height="400" Width="700">
+    <Grid Name="Root">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="200*" />
+            <RowDefinition Height="200*" />
+            <RowDefinition Height="300*" />
+        </Grid.RowDefinitions>
+        <Button Content="Play" Command="{Binding PlayCommand}" HorizontalAlignment="Left" Margin="22,27,0,0" VerticalAlignment="Top" Width="75" Height="22"/>
+        <Button Content="Record" Command="{Binding RecordCommand}" HorizontalAlignment="Left" Margin="120,27,0,0" VerticalAlignment="Top" Width="75" Height="22"/>
+        <Button Content="Stop" Command="{Binding StopCommand}" HorizontalAlignment="Left" Margin="120,60,0,0" VerticalAlignment="Top" Width="75" Height="22"/>
+        <Menu Height="22" VerticalAlignment="Top">
+            <MenuItem Header="File"/>
+            <MenuItem Header="Audio">
+                <MenuItem Header="Set" HorizontalAlignment="Left" Width="150"/>
+            </MenuItem>
+            <MenuItem Header="Effects"/>
+            <MenuItem Header="About"/>
+        </Menu>
+
+        <Grid Name="Visualization" Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="200*" />
+                <ColumnDefinition Width="200*" />
+            </Grid.ColumnDefinitions>
+            <ContentPresenter Content="{Binding InputVisualization}" Grid.Column="0" />
+            <ContentPresenter Content="{Binding OutputVisualization}" Grid.Column="1" />
+            <Button Content="Visualization" Command="{Binding ChangeVisualizationCommand}" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="75" Background="#FFD4D4D5" BorderBrush="White"/>
+        </Grid>
+    </Grid>
+</Window>
