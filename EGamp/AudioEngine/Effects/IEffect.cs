@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EGamp.Effects
+namespace EGamp.AudioEngine.Effects
 {
     interface IEffect
     {

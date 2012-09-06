@@ -5,13 +5,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using EGamp.AudioEngine;
 using EGamp.Visualization;
+using NAudio.CoreAudioApi;
+using NAudio.Wave;
 
 namespace EGamp
 {
     class MainWindowViewModel : INotifyPropertyChanged
     {
-        private AudioEngine engine;
+        private BasicAudioEngine engine;
         private int selectedIndex;
         private List<IVisualizationPlugin> visualizations;
         private IVisualizationPlugin selectedVisualization;
@@ -22,15 +25,16 @@ namespace EGamp
         public ICommand PlayCommand { get; private set; }
         public ICommand StopCommand { get; private set; }
         public ICommand ChangeVisualizationCommand { get; private set; }
+        public ICommand TestCommand { get; private set; }
 
         public MainWindowViewModel()
         {
             Configuration.LoadConfiguration();
             Logger.Initialize();
-            engine = new AudioEngine();
-            engine.Initialize();
-            engine.MaximumCalculated += new EventHandler<MaxSampleEventArgs>(audioGraph_MaximumCalculated);
-            engine.FftCalculated += new EventHandler<FftEventArgs>(audioGraph_FftCalculated);
+            //engine = new BasicAudioEngine();
+            //engine.Initialize();
+            //engine.MaximumCalculated += new EventHandler<MaxSampleEventArgs>(audioGraph_MaximumCalculated);
+            //engine.FftCalculated += new EventHandler<FftEventArgs>(audioGraph_FftCalculated);
 
             this.visualizations = new List<IVisualizationPlugin>();
             visualizations.Add(new SpectrumAnalyzerVisualization());
@@ -49,6 +53,9 @@ namespace EGamp
                         () => true);
             ChangeVisualizationCommand = new RelayCommand(
                         () => this.ChangeVisualization(),
+                        () => true);
+            TestCommand = new RelayCommand(
+                        () => this.Test(),
                         () => true);
         }
 
@@ -75,12 +82,12 @@ namespace EGamp
 
         private void Play()
         {
-            engine.StartPlaying();
+            engine.Start();
         }
 
         private void Stop()
         {
-            engine.StopPlaying();
+            engine.Stop();
             engine.StopRecording();
         }
 
@@ -114,6 +121,25 @@ namespace EGamp
             Logger.Close();
             engine.Close();
         }
+
+        private WaveIn sourceStream = null;
+        private WasapiOut waveOut = null;
+        public void Test()
+        {
+            sourceStream = new WaveIn();
+            int deviceNumber = 0;
+            sourceStream.DeviceNumber = deviceNumber;
+            sourceStream.WaveFormat = new WaveFormat(44100, WaveIn.GetCapabilities(deviceNumber).Channels);
+
+            WaveInProvider waveIn = new WaveInProvider(sourceStream);
+
+            waveOut = new WasapiOut(AudioClientShareMode.Shared, true, 100);
+            waveOut.Init(waveIn);
+            sourceStream.StartRecording();
+            waveOut.Play();
+        }
+
+
 
         private void RaisePropertyChangedEvent(string propertyName)
         {

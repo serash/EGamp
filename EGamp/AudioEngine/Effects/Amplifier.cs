@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using NAudio.Wave;
 
-namespace EGamp.Effects
+namespace EGamp.AudioEngine.Effects
 {
     class Amplifier : IEffect
     {

@@ -26,6 +26,7 @@ namespace EGamp.Visualization
 
         Polyline topLine = new Polyline();
         Polyline bottomLine = new Polyline();
+        Polyline position = new Polyline();
 
         public PolylineWaveFormControl()
         {
@@ -35,8 +36,15 @@ namespace EGamp.Visualization
             bottomLine.Stroke = this.Foreground;
             topLine.StrokeThickness = 1;
             bottomLine.StrokeThickness = 1;
+            position.StrokeThickness = 1;
             mainCanvas.Children.Add(topLine);
             mainCanvas.Children.Add(bottomLine);
+            mainCanvas.Children.Add(position); 
+            SolidColorBrush greenBrush = new SolidColorBrush();
+            greenBrush.Color = Colors.Green;
+            position.Stroke = greenBrush;
+
+            DrawPositionLine(renderPosition);
         }
 
         void OnSizeChanged(object sender, SizeChangedEventArgs e)
@@ -53,6 +61,7 @@ namespace EGamp.Visualization
         {
             topLine.Points.Clear();
             bottomLine.Points.Clear();
+            position.Points.Clear();
         }
 
         public void AddValue(float maxValue, float minValue)
@@ -73,6 +82,7 @@ namespace EGamp.Visualization
                     topLine.Points[erasePosition] = new Point(erasePosition, yPos);
                     bottomLine.Points[erasePosition] = new Point(erasePosition, yPos);
                 }
+                DrawPositionLine(renderPosition);
             }
         }
 
@@ -95,7 +105,15 @@ namespace EGamp.Visualization
                 topLine.Points[renderPosition] = new Point(renderPosition, topLinePos);
                 bottomLine.Points[renderPosition] = new Point(renderPosition, bottomLinePos);
             }
+            position.Points.Clear();
             renderPosition++;
+        }
+
+        public void DrawPositionLine(int xPosition)
+        {
+            position.Points.Clear();
+            position.Points.Add(new Point(xPosition, yTranslate + yScale));
+            position.Points.Add(new Point(xPosition, yTranslate - yScale));
         }
 
         /// <summary>

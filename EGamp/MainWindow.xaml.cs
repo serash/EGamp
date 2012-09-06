@@ -20,7 +20,6 @@ namespace EGamp
     /// </summary>
     public partial class MainWindow : Window
     {
-        private AudioEngine ae;
         public MainWindow()
         {
             InitializeComponent();

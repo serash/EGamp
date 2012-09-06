@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using NAudio.Dsp;
 
-namespace EGamp
+namespace EGamp.AudioEngine
 {
 
     public class SampleAggregator

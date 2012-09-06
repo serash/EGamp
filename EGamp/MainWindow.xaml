@@ -27,7 +27,7 @@
             </Grid.ColumnDefinitions>
             <ContentPresenter Content="{Binding InputVisualization}" Grid.Column="0" />
             <ContentPresenter Content="{Binding OutputVisualization}" Grid.Column="1" />
-            <Button Content="Visualization" Command="{Binding ChangeVisualizationCommand}" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="75" Background="#FFD4D4D5" BorderBrush="White"/>
         </Grid>
+        <Button Content="Test" Command="{Binding TestCommand}" HorizontalAlignment="Left" Margin="22,35,0,0" VerticalAlignment="Top" Width="75" Grid.Row="2"/>
     </Grid>
 </Window>

@@ -4,16 +4,16 @@
 winexe
 C#
 .cs
-E:\VS Projects\EGamp\EGamp\obj\Debug\
+E:\GitHub\EGamp\EGamp\obj\Debug\
 EGamp
 none
 false
 DEBUG;TRACE
-E:\VS Projects\EGamp\EGamp\App.xaml
+E:\GitHub\EGamp\EGamp\App.xaml
 3-1254256623
 
-242068591003
-14-1078123482
+25316680899
+14-1608599609
 MainWindow.xaml;Visualization\PolylineWaveFormControl.xaml;Visualization\SpectrumAnalyser.xaml;
 
 False
