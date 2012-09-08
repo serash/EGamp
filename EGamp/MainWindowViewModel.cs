@@ -21,20 +21,17 @@ namespace EGamp
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public ICommand RecordCommand { get; private set; }
         public ICommand PlayCommand { get; private set; }
-        public ICommand StopCommand { get; private set; }
         public ICommand ChangeVisualizationCommand { get; private set; }
-        public ICommand TestCommand { get; private set; }
 
         public MainWindowViewModel()
         {
             Configuration.LoadConfiguration();
             Logger.Initialize();
-            //engine = new BasicAudioEngine();
-            //engine.Initialize();
-            //engine.MaximumCalculated += new EventHandler<MaxSampleEventArgs>(audioGraph_MaximumCalculated);
-            //engine.FftCalculated += new EventHandler<FftEventArgs>(audioGraph_FftCalculated);
+            engine = new FileAudioEngine("C:\\Users\\dries\\Music\\TheCatalyst.mp3");
+            engine.Initialize();
+            engine.MaximumCalculated += new EventHandler<MaxSampleEventArgs>(audioGraph_MaximumCalculated);
+            engine.FftCalculated += new EventHandler<FftEventArgs>(audioGraph_FftCalculated);
 
             this.visualizations = new List<IVisualizationPlugin>();
             visualizations.Add(new SpectrumAnalyzerVisualization());
@@ -45,17 +42,8 @@ namespace EGamp
             PlayCommand = new RelayCommand(
                         () => this.Play(),
                         () => true);
-            RecordCommand = new RelayCommand(
-                        () => this.Record(),
-                        () => true);
-            StopCommand = new RelayCommand(
-                        () => this.Stop(),
-                        () => true);
             ChangeVisualizationCommand = new RelayCommand(
                         () => this.ChangeVisualization(),
-                        () => true);
-            TestCommand = new RelayCommand(
-                        () => this.Test(),
                         () => true);
         }
 
@@ -75,20 +63,12 @@ namespace EGamp
             }
         }
 
-        private void Record()
-        {
-            engine.StartRecording();
-        }
-
         private void Play()
         {
-            engine.Start();
-        }
-
-        private void Stop()
-        {
-            engine.Stop();
-            engine.StopRecording();
+            if (engine.IsPlaying())
+                engine.Stop();
+            else
+                engine.Play();
         }
 
         private void ChangeVisualization()
@@ -121,25 +101,6 @@ namespace EGamp
             Logger.Close();
             engine.Close();
         }
-
-        private WaveIn sourceStream = null;
-        private WasapiOut waveOut = null;
-        public void Test()
-        {
-            sourceStream = new WaveIn();
-            int deviceNumber = 0;
-            sourceStream.DeviceNumber = deviceNumber;
-            sourceStream.WaveFormat = new WaveFormat(44100, WaveIn.GetCapabilities(deviceNumber).Channels);
-
-            WaveInProvider waveIn = new WaveInProvider(sourceStream);
-
-            waveOut = new WasapiOut(AudioClientShareMode.Shared, true, 100);
-            waveOut.Init(waveIn);
-            sourceStream.StartRecording();
-            waveOut.Play();
-        }
-
-
 
         private void RaisePropertyChangedEvent(string propertyName)
         {

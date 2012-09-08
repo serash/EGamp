@@ -9,8 +9,6 @@
             <RowDefinition Height="300*" />
         </Grid.RowDefinitions>
         <Button Content="Play" Command="{Binding PlayCommand}" HorizontalAlignment="Left" Margin="22,27,0,0" VerticalAlignment="Top" Width="75" Height="22"/>
-        <Button Content="Record" Command="{Binding RecordCommand}" HorizontalAlignment="Left" Margin="120,27,0,0" VerticalAlignment="Top" Width="75" Height="22"/>
-        <Button Content="Stop" Command="{Binding StopCommand}" HorizontalAlignment="Left" Margin="120,60,0,0" VerticalAlignment="Top" Width="75" Height="22"/>
         <Menu Height="22" VerticalAlignment="Top">
             <MenuItem Header="File"/>
             <MenuItem Header="Audio">
@@ -28,6 +26,5 @@
             <ContentPresenter Content="{Binding InputVisualization}" Grid.Column="0" />
             <ContentPresenter Content="{Binding OutputVisualization}" Grid.Column="1" />
         </Grid>
-        <Button Content="Test" Command="{Binding TestCommand}" HorizontalAlignment="Left" Margin="22,35,0,0" VerticalAlignment="Top" Width="75" Grid.Row="2"/>
     </Grid>
 </Window>

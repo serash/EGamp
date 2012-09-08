@@ -61,6 +61,7 @@
     </ApplicationDefinition>
     <Compile Include="AudioEngine\Effects\Amplifier.cs" />
     <Compile Include="AudioEngine\Effects\EffectChain.cs" />
+    <Compile Include="AudioEngine\FileAudioEngine.cs" />
     <Compile Include="AudioEngine\Effects\IEffect.cs" />
     <Compile Include="AudioEngine\WaveOutAudioEngine.cs" />
     <Compile Include="MainWindowViewModel.cs" />

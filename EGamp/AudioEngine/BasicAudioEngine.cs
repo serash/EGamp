@@ -13,6 +13,7 @@ namespace EGamp.AudioEngine
 {
     abstract class BasicAudioEngine
     {
+        protected bool isRecording;
         protected WaveIn sourceStream = null;
         protected WaveInProvider waveIn = null;
         protected SampleAggregator aggregator = null;
@@ -47,6 +48,7 @@ namespace EGamp.AudioEngine
             waveIn = new WaveInProvider(sourceStream);
 
             // add handle events
+            isRecording = false;
         }
 
         private ISampleProvider CreateInputStream()
@@ -63,14 +65,21 @@ namespace EGamp.AudioEngine
                 sourceStream.DeviceNumber = deviceNumber;
         }
 
+        protected void BasicInitialize()
+        {
+            sourceStream.StartRecording();
+        }
+
         protected void BasicClose()
         {
-            
+            sourceStream.StopRecording();
+            sourceStream.Dispose();            
         }
 
         public abstract void Initialize();
         public abstract void Play();
         public abstract void Stop();
         public abstract void Close();
+        public abstract bool IsPlaying();
     }
 }
