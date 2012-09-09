@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using NAudio.Wave;
+using NAudio.Wave.SampleProviders;
 
 namespace EGamp.AudioEngine
 {
@@ -22,7 +23,10 @@ namespace EGamp.AudioEngine
         public override void Initialize()
         {
             BasicInitialize();
-            wavePlayer.Init(waveIn);
+            var inputStream = new SampleChannel(waveIn);
+            var sampleStream = new NotifyingSampleProvider(inputStream);
+            sampleStream.Sample += (s, e) => aggregator.Add(e.Left);
+            wavePlayer.Init(new SampleToWaveProvider(sampleStream));
         }
 
         public override void Play()
@@ -40,6 +44,11 @@ namespace EGamp.AudioEngine
             Stop();
             BasicClose();
             wavePlayer.Dispose();
+        }
+
+        public override void SetVolume(float volume)
+        {
+            wavePlayer.Volume = volume;
         }
 
         public override bool IsPlaying()

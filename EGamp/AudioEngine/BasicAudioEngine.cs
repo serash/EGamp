@@ -81,5 +81,6 @@ namespace EGamp.AudioEngine
         public abstract void Stop();
         public abstract void Close();
         public abstract bool IsPlaying();
+        public abstract void SetVolume(float volume);
     }
 }

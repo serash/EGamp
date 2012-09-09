@@ -15,20 +15,18 @@ namespace EGamp.AudioEngine
         private WaveOut wavePlayer = null;
         protected WaveStream waveStream = null;
 
-        public FileAudioEngine(String filename)
+        public FileAudioEngine(String filename) : base()
         {
             wavePlayer = new WaveOut();
             waveStream = new Mp3FileReader(filename);
         }
-
-
+        
         public override void Initialize()
         {
-            BasicInitialize();
             var inputStream = new SampleChannel(waveStream);
             var sampleStream = new NotifyingSampleProvider(inputStream);
             sampleStream.Sample += (s, e) => aggregator.Add(e.Left);
-            wavePlayer.Init(waveStream);
+            wavePlayer.Init(new SampleToWaveProvider(sampleStream));
         }
 
         public override void Play()
@@ -44,8 +42,13 @@ namespace EGamp.AudioEngine
         public override void Close()
         {
             Stop();
-            BasicClose();
+            waveStream.Dispose();
             wavePlayer.Dispose();
+        }
+
+        public override void SetVolume(float volume)
+        {
+            wavePlayer.Volume = volume;
         }
 
         public override bool IsPlaying()

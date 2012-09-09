@@ -14,36 +14,32 @@ namespace EGamp
 {
     class MainWindowViewModel : INotifyPropertyChanged
     {
+        private int volume;
         private BasicAudioEngine engine;
-        private int selectedIndex;
-        private List<IVisualizationPlugin> visualizations;
-        private IVisualizationPlugin selectedVisualization;
+        private SpectrumAnalyzerVisualization spectrumAnalyzerVisualization;
+        private PolylineWaveFormVisualization polylineWaveFormVisualization;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
         public ICommand PlayCommand { get; private set; }
-        public ICommand ChangeVisualizationCommand { get; private set; }
 
         public MainWindowViewModel()
         {
             Configuration.LoadConfiguration();
             Logger.Initialize();
             engine = new FileAudioEngine("C:\\Users\\dries\\Music\\TheCatalyst.mp3");
+            //engine = new WaveOutAudioEngine();
             engine.Initialize();
             engine.MaximumCalculated += new EventHandler<MaxSampleEventArgs>(audioGraph_MaximumCalculated);
             engine.FftCalculated += new EventHandler<FftEventArgs>(audioGraph_FftCalculated);
 
-            this.visualizations = new List<IVisualizationPlugin>();
-            visualizations.Add(new SpectrumAnalyzerVisualization());
-            visualizations.Add(new PolylineWaveFormVisualization());
-            selectedIndex = 0;
-            this.selectedVisualization = this.visualizations.ElementAt(selectedIndex);
+            spectrumAnalyzerVisualization = new SpectrumAnalyzerVisualization();
+            polylineWaveFormVisualization = new PolylineWaveFormVisualization();
+
+            this.volume = 100;
 
             PlayCommand = new RelayCommand(
                         () => this.Play(),
-                        () => true);
-            ChangeVisualizationCommand = new RelayCommand(
-                        () => this.ChangeVisualization(),
                         () => true);
         }
 
@@ -51,7 +47,7 @@ namespace EGamp
         {
             get
             {
-                return this.visualizations.ElementAt(0).Content;
+                return this.spectrumAnalyzerVisualization.Content;
             }
         }
 
@@ -59,7 +55,7 @@ namespace EGamp
         {
             get
             {
-                return this.visualizations.ElementAt(1).Content;
+                return this.polylineWaveFormVisualization.Content;
             }
         }
 
@@ -71,28 +67,34 @@ namespace EGamp
                 engine.Play();
         }
 
-        private void ChangeVisualization()
+        public int Volume
         {
-            this.selectedIndex = (this.selectedIndex + 1) % 2;
-            Logger.Log("Current index: " + selectedIndex);
-            this.selectedVisualization = this.visualizations[selectedIndex];
-            RaisePropertyChangedEvent("Visualization");
+            get
+            {
+                return volume;
+            }
+            set
+            {
+                if (volume != value)
+                {
+                    this.volume = value;
+                    if (this.engine != null)
+                    {
+                        this.engine.SetVolume((float)value/100);
+                    }
+                    RaisePropertyChanged("Volume");
+                }
+            }
         }
 
         void audioGraph_FftCalculated(object sender, FftEventArgs e)
         {
-            if (selectedVisualization != null)
-            {
-                visualizations[0].OnFftCalculated(e.Result);
-            }
+            spectrumAnalyzerVisualization.OnFftCalculated(e.Result);
         }
 
         void audioGraph_MaximumCalculated(object sender, MaxSampleEventArgs e)
         {
-            if (this.selectedVisualization != null)
-            {
-                visualizations[1].OnMaxCalculated(e.MinSample, e.MaxSample);
-            }
+            polylineWaveFormVisualization.OnMaxCalculated(e.MinSample, e.MaxSample);
         }
 
         public void Dispose()
@@ -102,9 +104,9 @@ namespace EGamp
             engine.Close();
         }
 
-        private void RaisePropertyChangedEvent(string propertyName)
+        private void RaisePropertyChanged(string propertyName)
         {
-            if (PropertyChanged != null)
+            if (this.PropertyChanged != null)
             {
                 PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
             }

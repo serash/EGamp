@@ -8,7 +8,6 @@
             <RowDefinition Height="200*" />
             <RowDefinition Height="300*" />
         </Grid.RowDefinitions>
-        <Button Content="Play" Command="{Binding PlayCommand}" HorizontalAlignment="Left" Margin="22,27,0,0" VerticalAlignment="Top" Width="75" Height="22"/>
         <Menu Height="22" VerticalAlignment="Top">
             <MenuItem Header="File"/>
             <MenuItem Header="Audio">
@@ -17,6 +16,9 @@
             <MenuItem Header="Effects"/>
             <MenuItem Header="About"/>
         </Menu>
+
+        <Button Content="Play" Command="{Binding PlayCommand}" HorizontalAlignment="Left" Margin="22,27,0,0" VerticalAlignment="Top" Width="75" Height="22"/>
+        <Slider HorizontalAlignment="Left" Margin="22,54,0,0" VerticalAlignment="Top" Width="250" Minimum="0" Maximum="100" Value="{Binding Volume, Mode=TwoWay}"/>
 
         <Grid Name="Visualization" Grid.Row="1">
             <Grid.ColumnDefinitions>
