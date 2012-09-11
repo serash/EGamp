@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using EGamp.AudioEngine.Effects;
 using NAudio.CoreAudioApi;
 using NAudio.Wave;
 using NAudio;
@@ -13,12 +14,16 @@ namespace EGamp.AudioEngine
     {
 
         private WaveOut wavePlayer = null;
-        protected WaveStream waveStream = null;
 
         public FileAudioEngine(String filename) : base()
         {
             wavePlayer = new WaveOut();
-            waveStream = new Mp3FileReader(filename);
+            if(System.IO.File.Exists(filename))
+            {
+                waveStream = new EffectStream(new Mp3FileReader(filename));
+            }
+            else 
+                throw new Exception("File doesn't exist");
         }
         
         public override void Initialize()

@@ -3,34 +3,40 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using EGamp.Visualization;
 using NAudio.Wave;
+using System.ComponentModel.Design;
 
 namespace EGamp.AudioEngine.Effects
 {
-    class Amplifier : IEffect
+    public class Amplifier : Effect
     {
-        private int shift;
-
+        private float amp;
         public Amplifier()
         {
-            shift = 2;
+            AddSlider(1, 1, 10, 1, "amount (dB)"); 
+            Name = "Amplifier";
         }
 
-        byte[] IEffect.Apply(byte[] buffer, int bytesRecorded)
+        public override void Init()
         {
-            byte[] newbuffer = new byte[bytesRecorded];
-            for (int index = 0; index < bytesRecorded; index += 2)
-            {
-                short sample = (short)((buffer[index + 1] << 8) |
-                                        buffer[index + 0]);
-                newbuffer[index + 1] = (byte)((buffer[index + 1] << shift) | (buffer[index + 1] >> (8-shift)));
-                newbuffer[index + 0] = (byte)(buffer[index + 0] << shift);
-                short newsample = (short)(((short)newbuffer[index + 1] << 8) |
-                                        (short)newbuffer[index + 0]);
-                //float sample32 = sample / 32768f;
-                Logger.Log("sample: " + sample + " => " + newsample);
-            }
-            return newbuffer;
+            base.Init();
+            amp = 1;
+        }
+
+
+        public override void Slider(object o, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (e.Source.Equals(Sliders[0].MainSlider))
+                amp = sqrt(pow(10, (float)e.NewValue/10));
+        }
+
+        public override void Sample(ref float spl0, ref float spl1)
+        {
+            spl0 = spl0 * amp;
+            spl1 = spl1 * amp;
         }
     }
 }

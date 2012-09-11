@@ -59,13 +59,26 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="AudioEngine\DirectSoundAudioEngine.cs" />
     <Compile Include="AudioEngine\Effects\Amplifier.cs" />
     <Compile Include="AudioEngine\Effects\EffectChain.cs" />
+    <Compile Include="AudioEngine\Effects\EffectStream .cs" />
+    <Compile Include="AudioEngine\Effects\Tremolo.cs" />
     <Compile Include="AudioEngine\FileAudioEngine.cs" />
-    <Compile Include="AudioEngine\Effects\IEffect.cs" />
+    <Compile Include="AudioEngine\Effects\Effect.cs" />
     <Compile Include="AudioEngine\WaveOutAudioEngine.cs" />
+    <Compile Include="AudioEngine\WaveProviderStream.cs" />
     <Compile Include="MainWindowViewModel.cs" />
     <Compile Include="AudioEngine\SampleAggregator.cs" />
+    <Compile Include="Visualization\CustomSlider.xaml.cs">
+      <DependentUpon>CustomSlider.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Visualization\EffectCollection.xaml.cs">
+      <DependentUpon>EffectCollection.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Visualization\EffectVisualization.xaml.cs">
+      <DependentUpon>EffectVisualization.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Visualization\IVisualizationPlugin.cs" />
     <Compile Include="Visualization\IWaveFormRenderer.cs" />
     <Compile Include="Visualization\PolylineWaveFormControl.xaml.cs">
@@ -92,6 +105,18 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="Visualization\CustomSlider.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Visualization\EffectCollection.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Visualization\EffectVisualization.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Visualization\PolylineWaveFormControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

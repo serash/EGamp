@@ -58,3 +58,9 @@ C:\Users\dries\Documents\GitHub\EGamp\EGamp\bin\Debug\NAudio.dll
 C:\Users\dries\Documents\GitHub\EGamp\EGamp\bin\Debug\NAudio.WindowsMediaFormat.dll
 C:\Users\dries\Documents\GitHub\EGamp\EGamp\bin\Debug\NAudio.xml
 C:\Users\dries\Documents\GitHub\EGamp\EGamp\obj\Debug\EGamp.pdb
+E:\GitHub\EGamp\EGamp\obj\Debug\Visualization\CustomSlider.baml
+E:\GitHub\EGamp\EGamp\obj\Debug\Visualization\CustomSlider.g.cs
+E:\GitHub\EGamp\EGamp\obj\Debug\Visualization\EffectVisualization.baml
+E:\GitHub\EGamp\EGamp\obj\Debug\Visualization\EffectVisualization.g.cs
+E:\GitHub\EGamp\EGamp\obj\Debug\Visualization\EffectCollection.baml
+E:\GitHub\EGamp\EGamp\obj\Debug\Visualization\EffectCollection.g.cs

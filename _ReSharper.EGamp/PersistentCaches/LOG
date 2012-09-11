@@ -1,5 +1,5 @@
-2012/09/06-20:46:17.979 9fc Recovering log #51
-2012/09/06-20:46:17.979 9fc Level-0 table #53: started
-2012/09/06-20:46:18.024 9fc Level-0 table #53: 51377 bytes OK
-2012/09/06-20:46:18.062 9fc Delete type=0 #51
-2012/09/06-20:46:18.062 9fc Delete type=3 #49
+2012/09/11-22:47:18.298 c28 Recovering log #89
+2012/09/11-22:47:18.299 c28 Level-0 table #92: started
+2012/09/11-22:47:18.356 c28 Level-0 table #92: 199771 bytes OK
+2012/09/11-22:47:18.390 c28 Delete type=0 #89
+2012/09/11-22:47:18.391 c28 Delete type=3 #87

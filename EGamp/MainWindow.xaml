@@ -4,9 +4,9 @@
         Title="MainWindow" Height="400" Width="700">
     <Grid Name="Root">
         <Grid.RowDefinitions>
-            <RowDefinition Height="200*" />
-            <RowDefinition Height="200*" />
-            <RowDefinition Height="300*" />
+            <RowDefinition Height="50*" />
+            <RowDefinition Height="50*" />
+            <RowDefinition Height="175" />
         </Grid.RowDefinitions>
         <Menu Height="22" VerticalAlignment="Top">
             <MenuItem Header="File"/>
@@ -18,6 +18,7 @@
         </Menu>
 
         <Button Content="Play" Command="{Binding PlayCommand}" HorizontalAlignment="Left" Margin="22,27,0,0" VerticalAlignment="Top" Width="75" Height="22"/>
+        <Button Content="Add Effect" Command="{Binding AddEffectCommand}" HorizontalAlignment="Left" Height="22" Margin="313,27,0,0" VerticalAlignment="Top" Width="106"/>
         <Slider HorizontalAlignment="Left" Margin="22,54,0,0" VerticalAlignment="Top" Width="250" Minimum="0" Maximum="100" Value="{Binding Volume, Mode=TwoWay}"/>
 
         <Grid Name="Visualization" Grid.Row="1">
@@ -28,5 +29,9 @@
             <ContentPresenter Content="{Binding InputVisualization}" Grid.Column="0" />
             <ContentPresenter Content="{Binding OutputVisualization}" Grid.Column="1" />
         </Grid>
+        <ContentPresenter Content="{Binding EffectsWindow}" Height="175" Grid.Row="2">
+        </ContentPresenter>
+        <ComboBox HorizontalAlignment="Left" Height="22" Margin="109,27,0,0" VerticalAlignment="Top" Width="186" 
+                  ItemsSource="{Binding Effects}" DisplayMemberPath="Name" SelectedValuePath="Name" SelectedItem="{Binding SelectedEffect}"/>
     </Grid>
 </Window>

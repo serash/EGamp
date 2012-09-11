@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using EGamp.AudioEngine.Effects;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 
@@ -17,16 +18,14 @@ namespace EGamp.AudioEngine
             : base()
         {
             wavePlayer = new WaveOut();
+            wavePlayer.NumberOfBuffers = 2;
         }
 
 
         public override void Initialize()
         {
             BasicInitialize();
-            var inputStream = new SampleChannel(waveIn);
-            var sampleStream = new NotifyingSampleProvider(inputStream);
-            sampleStream.Sample += (s, e) => aggregator.Add(e.Left);
-            wavePlayer.Init(new SampleToWaveProvider(sampleStream));
+            wavePlayer.Init(new SampleToWaveProvider(this.createSampleStream()));
         }
 
         public override void Play()
