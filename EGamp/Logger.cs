@@ -11,19 +11,23 @@ namespace EGamp
     {
         private static String _fileName;
         private static TextWriter tw;
+        private static bool isOpen;
         public static void Initialize()
         {
             _fileName = Configuration.GetString("logFile");
             tw = new StreamWriter(_fileName);
+            isOpen = true;
         }
 
         public static void Close()
         {
             tw.Close();
+            isOpen = false;
         }
         public static void Log(String str)
         {
-            tw.WriteLine(str);
+            if(isOpen)
+                tw.WriteLine(str);
         }
     }
 }

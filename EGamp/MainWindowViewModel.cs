@@ -7,8 +7,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows.Input;
-using EGamp.AudioEngine;
-using EGamp.AudioEngine.Effects;
+using EGamp.Engine;
+using EGamp.Engine.Effects;
 using EGamp.Visualization;
 using NAudio.CoreAudioApi;
 using NAudio.Wave;
@@ -18,7 +18,7 @@ namespace EGamp
     class MainWindowViewModel : INotifyPropertyChanged
     {
         private int volume;
-        private BasicAudioEngine engine;
+        private AudioEngine engine;
         private SpectrumAnalyzerVisualization spectrumAnalyzerVisualization;
         private PolylineWaveFormVisualization polylineWaveFormVisualization;
         private EffectCollection effectWindow;
@@ -35,9 +35,7 @@ namespace EGamp
         {
             Configuration.LoadConfiguration();
             Logger.Initialize();
-            //engine = new FileAudioEngine("C:\\TheCatalyst.mp3");
-            engine = new WaveOutAudioEngine();
-            //engine = new DirectSoundAudioEngine();
+            engine = new AudioEngine();
             engine.Initialize();
             engine.MaximumCalculated += new EventHandler<MaxSampleEventArgs>(audioGraph_MaximumCalculated);
             engine.EffectAdded += new EventHandler<AddEffectEventArgs>(effectWindow_AddEffect);

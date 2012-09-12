@@ -13,6 +13,8 @@
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WarningLevel>4</WarningLevel>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -34,10 +36,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="NAudio">
+    <Reference Include="NAudio, Version=1.5.4.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>.\NAudio.dll</HintPath>
     </Reference>
-    <Reference Include="NAudio.WindowsMediaFormat">
+    <Reference Include="NAudio.WindowsMediaFormat, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>.\NAudio.WindowsMediaFormat.dll</HintPath>
     </Reference>
     <Reference Include="System" />
@@ -59,17 +63,14 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="AudioEngine\DirectSoundAudioEngine.cs" />
-    <Compile Include="AudioEngine\Effects\Amplifier.cs" />
-    <Compile Include="AudioEngine\Effects\EffectChain.cs" />
-    <Compile Include="AudioEngine\Effects\EffectStream .cs" />
-    <Compile Include="AudioEngine\Effects\Tremolo.cs" />
-    <Compile Include="AudioEngine\FileAudioEngine.cs" />
-    <Compile Include="AudioEngine\Effects\Effect.cs" />
-    <Compile Include="AudioEngine\WaveOutAudioEngine.cs" />
-    <Compile Include="AudioEngine\WaveProviderStream.cs" />
+    <Compile Include="Engine\Effects\Amplifier.cs" />
+    <Compile Include="Engine\Effects\EffectChain.cs" />
+    <Compile Include="Engine\Effects\EffectStream .cs" />
+    <Compile Include="Engine\Effects\Tremolo.cs" />
+    <Compile Include="Engine\Effects\Effect.cs" />
+    <Compile Include="Engine\WaveProviderStream.cs" />
     <Compile Include="MainWindowViewModel.cs" />
-    <Compile Include="AudioEngine\SampleAggregator.cs" />
+    <Compile Include="Engine\SampleAggregator.cs" />
     <Compile Include="Visualization\CustomSlider.xaml.cs">
       <DependentUpon>CustomSlider.xaml</DependentUpon>
     </Compile>
@@ -98,7 +99,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="AudioEngine\BasicAudioEngine.cs" />
+    <Compile Include="Engine\AudioEngine.cs" />
     <Compile Include="Configuration.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="MainWindow.xaml.cs">
@@ -144,6 +145,7 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -153,7 +155,11 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Engine\Asio\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

@@ -1,64 +1,10 @@
 ﻿<RecentFiles>
   <RecentFiles>
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Visualization/f:SpectrumAnalyser.xaml" caret="1" fromTop="0" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Visualization/f:SpectrumAnalyser.xaml.cs" caret="938" fromTop="0" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/f:MainWindow.xaml.cs" caret="555" fromTop="20" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Visualization/f:PolylineWaveFormControl.xaml" caret="223" fromTop="3" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Visualization/f:PolylineWaveFormVisualization.cs" caret="0" fromTop="0" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/f:App.config" caret="0" fromTop="0" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Visualization/f:PolylineWaveFormControl.xaml.cs" caret="3282" fromTop="27" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Visualization/f:IWaveFormRenderer.cs" caret="0" fromTop="0" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Visualization/f:IVisualizationPlugin.cs" caret="0" fromTop="0" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Visualization/f:EffectCollection.xaml.cs" caret="620" fromTop="22" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:AudioEngine/f:DirectSoundAudioEngine.cs" caret="1259" fromTop="21" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:AudioEngine/f:WaveProviderStream.cs" caret="703" fromTop="27" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:AudioEngine/f:FileAudioEngine.cs" caret="1278" fromTop="27" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/f:RelayCommand.cs" caret="1787" fromTop="28" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Visualization/f:EffectVisualization.xaml.cs" caret="982" fromTop="24" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Visualization/f:CustomSlider.xaml.cs" caret="892" fromTop="4" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:AudioEngine/f:SampleAggregator.cs" caret="1515" fromTop="55" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/f:MainWindow.xaml" caret="2052" fromTop="7" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Visualization/f:EffectCollection.xaml" caret="402" fromTop="5" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Visualization/f:CustomSlider.xaml" caret="12844" fromTop="9" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:AudioEngine/f:WaveOutAudioEngine.cs" caret="698" fromTop="19" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:AudioEngine/f:BasicAudioEngine.cs" caret="1568" fromTop="3" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:AudioEngine/d:Effects/f:EffectChain.cs" caret="213" fromTop="3" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Visualization/f:EffectVisualization.xaml" caret="760" fromTop="7" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:AudioEngine/d:Effects/f:Tremolo.cs" caret="604" fromTop="21" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:AudioEngine/d:Effects/f:EffectStream .cs" caret="4600" fromTop="23" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:AudioEngine/d:Effects/f:Effect.cs" caret="394" fromTop="16" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:AudioEngine/d:Effects/f:Amplifier.cs" caret="996" fromTop="38" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/f:MainWindowViewModel.cs" caret="1313" fromTop="21" />
+    <File id="4BECB08E-C9F1-43CF-BF6C-E243E66246F5/f:NuGet.Config/l:.nuget?NuGet.Config" caret="0" fromTop="0" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/f:MainWindowViewModel.cs" caret="1128" fromTop="12" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Engine/f:AudioEngine.cs" caret="333" fromTop="14" />
   </RecentFiles>
   <RecentEdits>
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Visualization/f:PolylineWaveFormControl.xaml" caret="41" fromTop="0" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Visualization/f:SpectrumAnalyser.xaml" caret="41" fromTop="0" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/f:App.xaml" caret="224" fromTop="3" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/f:App.xaml.cs" caret="544" fromTop="19" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Visualization/f:PolylineWaveFormVisualization.cs" caret="619" fromTop="23" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Visualization/f:SpectrumAnalyzerVisualization.cs" caret="699" fromTop="29" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/f:RelayCommand.cs" caret="163" fromTop="7" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Visualization/f:SpectrumAnalyser.xaml.cs" caret="970" fromTop="23" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Visualization/f:PolylineWaveFormControl.xaml.cs" caret="1512" fromTop="29" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:AudioEngine/f:SampleAggregator.cs" caret="196" fromTop="8" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/f:MainWindow.xaml.cs" caret="555" fromTop="20" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:AudioEngine/f:WaveProviderStream.cs" caret="340" fromTop="5" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:AudioEngine/f:DirectSoundAudioEngine.cs" caret="1259" fromTop="21" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:AudioEngine/f:FileAudioEngine.cs" caret="1687" fromTop="31" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Visualization/f:EffectVisualization.xaml.cs" caret="660" fromTop="24" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Visualization/f:EffectCollection.xaml.cs" caret="1054" fromTop="34" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Visualization/f:CustomSlider.xaml" caret="1780" fromTop="9" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Visualization/f:CustomSlider.xaml.cs" caret="2166" fromTop="35" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Visualization/f:EffectCollection.xaml" caret="661" fromTop="9" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/f:MainWindow.xaml" caret="2052" fromTop="7" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Visualization/f:EffectVisualization.xaml" caret="760" fromTop="7" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:AudioEngine/d:Effects/f:Tremolo.cs" caret="1158" fromTop="31" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:AudioEngine/f:BasicAudioEngine.cs" caret="1568" fromTop="15" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:AudioEngine/f:WaveOutAudioEngine.cs" caret="502" fromTop="20" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:AudioEngine/d:Effects/f:EffectChain.cs" caret="832" fromTop="26" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:AudioEngine/d:Effects/f:EffectStream .cs" caret="5339" fromTop="20" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:AudioEngine/d:Effects/f:Amplifier.cs" caret="426" fromTop="15" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:AudioEngine/d:Effects/f:Effect.cs" caret="4475" fromTop="35" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/f:MainWindowViewModel.cs" caret="1259" fromTop="26" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/f:MainWindowViewModel.cs" caret="1128" fromTop="18" />
   </RecentEdits>
 </RecentFiles>
