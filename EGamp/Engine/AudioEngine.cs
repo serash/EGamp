@@ -4,11 +4,13 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using EGamp.Engine.Asio;
 using EGamp.Engine.Effects;
 using NAudio.CoreAudioApi;
-using NAudio.Wave;
 using NAudio;
+using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
+using AsioAudioAvailableEventArgs = NAudio.Wave.AsioAudioAvailableEventArgs;
 
 namespace EGamp.Engine
 {
@@ -18,7 +20,7 @@ namespace EGamp.Engine
         private IWaveProvider waveIn = null;
         private SampleAggregator aggregator = null;
         private EffectStream waveStream = null;
-        private AsioOut wavePlayer = null;
+        private MyAsioOut wavePlayer = null;
 
         public event EventHandler<AddEffectEventArgs> effectAdded;
 
@@ -57,8 +59,13 @@ namespace EGamp.Engine
             waveStream = new EffectStream(new WaveProviderStream(waveIn));
 
             // asioOut
-            wavePlayer = new AsioOut();
+            wavePlayer = new MyAsioOut();
             wavePlayer.AudioAvailable += AudioAvailableEvent;
+        }
+
+        private void AudioAvailableEvent(object sender, Asio.AsioAudioAvailableEventArgs e)
+        {
+            Logger.Log("Processing 16 bit sample: " + e.GetAsInterleavedSamples()[0]);
         }
 
         private ISampleProvider createSampleStream()
@@ -115,11 +122,7 @@ namespace EGamp.Engine
         {
             return wavePlayer.PlaybackState == PlaybackState.Playing;
         }
-    
-        public void AudioAvailableEvent(object o, AsioAudioAvailableEventArgs e)
-        {
-            Logger.Log("Processing 16 bit sample: " + e.GetAsInterleavedSamples()[0]);
-        }
+
     }
 
     public class AddEffectEventArgs : EventArgs

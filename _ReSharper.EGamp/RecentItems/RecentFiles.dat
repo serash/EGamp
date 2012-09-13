@@ -1,10 +1,25 @@
 ﻿<RecentFiles>
   <RecentFiles>
-    <File id="4BECB08E-C9F1-43CF-BF6C-E243E66246F5/f:NuGet.Config/l:.nuget?NuGet.Config" caret="0" fromTop="0" />
+    <File id="4BECB08E-C9F1-43CF-BF6C-E243E66246F5/f:NuGet.Config/s:..?.nuget?NuGet.Config" caret="0" fromTop="0" />
     <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/f:MainWindowViewModel.cs" caret="1128" fromTop="12" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Engine/f:AudioEngine.cs" caret="333" fromTop="14" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Engine/d:Asio/f:MyASIOStructures.cs" caret="83" fromTop="3" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Engine/d:Asio/f:MyAsioSampleType.cs" caret="99" fromTop="4" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Engine/d:Asio/f:MyASIOSampleConvertor.cs" caret="3554" fromTop="14" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Engine/d:Asio/f:MyASIODriverExt.cs" caret="483" fromTop="12" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Engine/d:Asio/f:MyAsioDriverCapability.cs" caret="312" fromTop="10" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Engine/d:Asio/f:MyASIODriver.cs" caret="98" fromTop="3" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Engine/f:AudioEngine.cs" caret="3789" fromTop="43" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Engine/d:Asio/f:MyAsioOut.cs" caret="195" fromTop="8" />
   </RecentFiles>
   <RecentEdits>
     <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/f:MainWindowViewModel.cs" caret="1128" fromTop="18" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Engine/d:Asio/f:MyAsioOut.cs" caret="197" fromTop="9" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Engine/d:Asio/f:MyASIODriverExt.cs" caret="44" fromTop="2" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Engine/d:Asio/f:MyASIODriver.cs" caret="153" fromTop="6" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Engine/d:Asio/f:MyAsioDriverCapability.cs" caret="99" fromTop="4" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Engine/d:Asio/f:MyAsioSampleType.cs" caret="99" fromTop="4" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Engine/d:Asio/f:MyASIOStructures.cs" caret="83" fromTop="3" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Engine/d:Asio/f:MyASIOSampleConvertor.cs" caret="64" fromTop="3" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Engine/f:AudioEngine.cs" caret="3789" fromTop="31" />
   </RecentEdits>
 </RecentFiles>
