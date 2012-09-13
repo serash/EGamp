@@ -18,7 +18,7 @@ namespace EGamp
     class MainWindowViewModel : INotifyPropertyChanged
     {
         private int volume;
-        private AudioEngine engine;
+        private IAudioEngine engine;
         private SpectrumAnalyzerVisualization spectrumAnalyzerVisualization;
         private PolylineWaveFormVisualization polylineWaveFormVisualization;
         private EffectCollection effectWindow;
@@ -36,6 +36,8 @@ namespace EGamp
             Configuration.LoadConfiguration();
             Logger.Initialize();
             engine = new AudioEngine();
+            //engine = new FileAudioEngine();
+            //((FileAudioEngine)engine).Initialize("C:\\TheCatalyst.mp3");
             engine.Initialize();
             engine.MaximumCalculated += new EventHandler<MaxSampleEventArgs>(audioGraph_MaximumCalculated);
             engine.EffectAdded += new EventHandler<AddEffectEventArgs>(effectWindow_AddEffect);

@@ -1,26 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using EGamp.Engine.Asio;
 using EGamp.Engine.Effects;
-using NAudio.CoreAudioApi;
-using NAudio;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
-using AsioAudioAvailableEventArgs = NAudio.Wave.AsioAudioAvailableEventArgs;
 
 namespace EGamp.Engine
 {
-    public class AudioEngine : IAudioEngine
+    public class FileAudioEngine : IAudioEngine
     {
-        private WaveIn sourceStream = null;
         private IWaveProvider waveIn = null;
         private SampleAggregator aggregator = null;
         private EffectStream waveStream = null;
-        private IWavePlayer wavePlayer = null;
+        private WaveOut wavePlayer = null;
 
         private event EventHandler<AddEffectEventArgs> effectAdded;
 
@@ -42,27 +37,14 @@ namespace EGamp.Engine
             remove { effectAdded -= value; }
         }
 
-        public AudioEngine(int deviceNumber = 0)
+        public FileAudioEngine()
         {
             aggregator = new SampleAggregator();
             aggregator.NotificationCount = 882;
             aggregator.PerformFFT = true;
 
-            // wavein
-            sourceStream = new WaveIn();
-            sourceStream.BufferMilliseconds = 50;
-            sourceStream.DeviceNumber = deviceNumber;
-            sourceStream.WaveFormat = new WaveFormat(44100, WaveIn.GetCapabilities(deviceNumber).Channels);
-
-            // waveprovider
-            waveIn = new WaveInProvider(sourceStream);
-            waveStream = new EffectStream(new WaveProviderStream(waveIn));
-
             // asioOut
             wavePlayer = new WaveOut();
-            //wavePlayer = new WasapiOut(AudioClientShareMode.Shared, 50);
-            //wavePlayer = new MyAsioOut();
-            //wavePlayer.AudioAvailable += AudioAvailableEvent;
         }
 
         private ISampleProvider createSampleStream()
@@ -84,15 +66,18 @@ namespace EGamp.Engine
 
         public void SetRecordingDevice(int deviceNumber)
         {
-            if (deviceNumber <WaveIn.DeviceCount)
-                sourceStream.DeviceNumber = deviceNumber;
         }
 
         public void Initialize()
         {
-            //wavePlayer.InitRecordAndPlayback(waveStream, 1, 44100);
-            sourceStream.StartRecording();
-            wavePlayer.Init(new SampleToWaveProvider(this.createSampleStream())); 
+            
+        }
+        
+        public void Initialize(String filename)
+        {
+            waveIn = new Mp3FileReader("C:\\TheCatalyst.mp3");
+            waveStream = new EffectStream(new WaveProviderStream(waveIn));
+            wavePlayer.Init(new SampleToWaveProvider(this.createSampleStream()));
         }
 
         public void Play()
@@ -109,12 +94,12 @@ namespace EGamp.Engine
         {
             Stop();
             waveStream.Dispose();
-            sourceStream.Dispose();  
             wavePlayer.Dispose();
         }
 
         public void SetVolume(float volume)
         {
+            wavePlayer.Volume = volume;
         }
 
         public bool IsPlaying()
@@ -124,17 +109,6 @@ namespace EGamp.Engine
 
         public void AudioAvailableEvent(object sender, Asio.AsioAudioAvailableEventArgs e)
         {
-            Logger.Log("Processing 16 bit sample: " + e.GetAsInterleavedSamples()[0]);
         }
-    }
-
-    public class AddEffectEventArgs : EventArgs
-    {
-        [DebuggerStepThrough]
-        public AddEffectEventArgs(Effect effect)
-        {
-            this.NewEffect = effect;
-        }
-        public Effect NewEffect { get; private set; }
     }
 }

@@ -76,6 +76,8 @@
     <Compile Include="Engine\Effects\EffectStream .cs" />
     <Compile Include="Engine\Effects\Tremolo.cs" />
     <Compile Include="Engine\Effects\Effect.cs" />
+    <Compile Include="Engine\FileAudioEngine.cs" />
+    <Compile Include="Engine\IAudioEngine.cs" />
     <Compile Include="Engine\WaveProviderStream.cs" />
     <Compile Include="MainWindowViewModel.cs" />
     <Compile Include="Engine\SampleAggregator.cs" />
