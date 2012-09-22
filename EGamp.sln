@@ -10,6 +10,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{4BECB0
 		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AudioLibrary", "AudioLibrary\AudioLibrary.vcxproj", "{9F99AC40-ECD6-49D1-9ED6-BF5BDE88E2F3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestAudioLibrary", "TestAudioLibrary\TestAudioLibrary.csproj", "{5E1FF295-74A6-43AC-9554-4BB0A3220DA0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,6 +34,26 @@ Global
 		{AD11D271-5619-4F3B-863E-AAE07101F26C}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{AD11D271-5619-4F3B-863E-AAE07101F26C}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{AD11D271-5619-4F3B-863E-AAE07101F26C}.Release|Win32.ActiveCfg = Release|Any CPU
+		{9F99AC40-ECD6-49D1-9ED6-BF5BDE88E2F3}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{9F99AC40-ECD6-49D1-9ED6-BF5BDE88E2F3}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{9F99AC40-ECD6-49D1-9ED6-BF5BDE88E2F3}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{9F99AC40-ECD6-49D1-9ED6-BF5BDE88E2F3}.Debug|Win32.ActiveCfg = Debug|Win32
+		{9F99AC40-ECD6-49D1-9ED6-BF5BDE88E2F3}.Debug|Win32.Build.0 = Debug|Win32
+		{9F99AC40-ECD6-49D1-9ED6-BF5BDE88E2F3}.Release|Any CPU.ActiveCfg = Release|Win32
+		{9F99AC40-ECD6-49D1-9ED6-BF5BDE88E2F3}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{9F99AC40-ECD6-49D1-9ED6-BF5BDE88E2F3}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{9F99AC40-ECD6-49D1-9ED6-BF5BDE88E2F3}.Release|Win32.ActiveCfg = Release|Win32
+		{9F99AC40-ECD6-49D1-9ED6-BF5BDE88E2F3}.Release|Win32.Build.0 = Release|Win32
+		{5E1FF295-74A6-43AC-9554-4BB0A3220DA0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5E1FF295-74A6-43AC-9554-4BB0A3220DA0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5E1FF295-74A6-43AC-9554-4BB0A3220DA0}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{5E1FF295-74A6-43AC-9554-4BB0A3220DA0}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{5E1FF295-74A6-43AC-9554-4BB0A3220DA0}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{5E1FF295-74A6-43AC-9554-4BB0A3220DA0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5E1FF295-74A6-43AC-9554-4BB0A3220DA0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5E1FF295-74A6-43AC-9554-4BB0A3220DA0}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{5E1FF295-74A6-43AC-9554-4BB0A3220DA0}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{5E1FF295-74A6-43AC-9554-4BB0A3220DA0}.Release|Win32.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using EGamp.Engine.Asio;
 using NAudio.Wave;
 
 namespace EGamp.Engine.Effects
@@ -10,6 +12,8 @@ namespace EGamp.Engine.Effects
     public class EffectStream : WaveStream
     {
         private EffectChain effects;
+        private byte[] data = null;
+        private int dataSize = 0;
         public WaveStream source;
         private object effectLock = new object();
         private object sourceLock = new object();
@@ -70,19 +74,22 @@ namespace EGamp.Engine.Effects
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            int read;
-            lock (sourceLock)
-            {
-                read = source.Read(buffer, offset, count);
-            }
+            //lock (sourceLock)
+            //{
+            //    read = source.Read(buffer, offset, count);
+            //}
+            int bytesToCopy = dataSize;
+            if (dataSize > count)
+                bytesToCopy = count;
+            Buffer.BlockCopy(data, 0, buffer, offset, bytesToCopy);
             if (WaveFormat.BitsPerSample == 16)
             {
                 lock (effectLock)
                 {
-                    Process16Bit(buffer, offset, read);
+                    Process16Bit(buffer, offset, bytesToCopy);
                 }
             }
-            return read;
+            return bytesToCopy;
         }
 
         private void Process16Bit(byte[] buffer, int offset, int count)
@@ -110,6 +117,7 @@ namespace EGamp.Engine.Effects
                 // run these samples through the effects
                 float sample64Left = sample16Left / 32768.0f;
                 float sample64Right = sample16Right / 32768.0f;
+                Logger.Log("before effect: " + sample64Left);
                 foreach (Effect effect in effects)
                 {
                     if (effect.Enabled)
@@ -117,6 +125,7 @@ namespace EGamp.Engine.Effects
                         effect.Sample(ref sample64Left, ref sample64Right);
                     }
                 }
+                Logger.Log("after effect: " + sample64Left);
 
                 sample16Left = (short)(sample64Left * 32768.0f);
                 sample16Right = (short)(sample64Right * 32768.0f);
@@ -212,6 +221,21 @@ namespace EGamp.Engine.Effects
         {
             base.Dispose(disposing);
             source.Dispose();
+        }
+
+        protected void checkDataArray(int preferredSize)
+        {
+            if (data == null || dataSize != preferredSize)
+            {
+                data = new byte[preferredSize];
+                dataSize = preferredSize;
+            }
+        }
+
+        internal void writeFromAsioInput(IntPtr[] intPtr, int bufferSize, AsioSampleType asioSampleType)
+        {
+            checkDataArray(bufferSize);
+            Marshal.Copy(intPtr[0], data, 0, bufferSize);
         }
     }
 

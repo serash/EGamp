@@ -64,3 +64,9 @@ E:\GitHub\EGamp\EGamp\obj\Debug\Visualization\EffectVisualization.baml
 E:\GitHub\EGamp\EGamp\obj\Debug\Visualization\EffectVisualization.g.cs
 E:\GitHub\EGamp\EGamp\obj\Debug\Visualization\EffectCollection.baml
 E:\GitHub\EGamp\EGamp\obj\Debug\Visualization\EffectCollection.g.cs
+C:\Users\dries\Documents\GitHub\EGamp\EGamp\obj\Debug\Visualization\CustomSlider.baml
+C:\Users\dries\Documents\GitHub\EGamp\EGamp\obj\Debug\Visualization\EffectCollection.baml
+C:\Users\dries\Documents\GitHub\EGamp\EGamp\obj\Debug\Visualization\EffectVisualization.baml
+C:\Users\dries\Documents\GitHub\EGamp\EGamp\obj\Debug\Visualization\CustomSlider.g.cs
+C:\Users\dries\Documents\GitHub\EGamp\EGamp\obj\Debug\Visualization\EffectCollection.g.cs
+C:\Users\dries\Documents\GitHub\EGamp\EGamp\obj\Debug\Visualization\EffectVisualization.g.cs

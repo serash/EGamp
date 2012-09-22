@@ -4,16 +4,16 @@
 winexe
 C#
 .cs
-E:\GitHub\EGamp\EGamp\obj\Debug\
+C:\Users\dries\Documents\GitHub\EGamp\EGamp\obj\Debug\
 EGamp
 none
 false
 DEBUG;TRACE
-E:\GitHub\EGamp\EGamp\App.xaml
+C:\Users\dries\Documents\GitHub\EGamp\EGamp\App.xaml
 6-371753467
 
-39-1309426329
-14-1608599609
+39154566370
+141574543617
 MainWindow.xaml;Visualization\CustomSlider.xaml;Visualization\EffectCollection.xaml;Visualization\EffectVisualization.xaml;Visualization\PolylineWaveFormControl.xaml;Visualization\SpectrumAnalyser.xaml;
 
 False

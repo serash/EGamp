@@ -15,7 +15,7 @@ namespace EGamp.Engine
         private IWaveProvider waveIn = null;
         private SampleAggregator aggregator = null;
         private EffectStream waveStream = null;
-        private WaveOut wavePlayer = null;
+        private IWavePlayer wavePlayer = null;
 
         private event EventHandler<AddEffectEventArgs> effectAdded;
 
@@ -44,14 +44,15 @@ namespace EGamp.Engine
             aggregator.PerformFFT = true;
 
             // asioOut
-            wavePlayer = new WaveOut();
+            //wavePlayer = new WaveOut();
+            wavePlayer = new MyAsioOut(AsioOut.GetDriverNames()[0]);
         }
 
         private ISampleProvider createSampleStream()
         {
             var inputStream = new SampleChannel(waveStream);
             var sampleStream = new NotifyingSampleProvider(inputStream);
-            sampleStream.Sample += (s, e) => aggregator.Add(e.Left);
+            //sampleStream.Sample += (s, e) => aggregator.Add(e.Left);
             return sampleStream;
         }
 

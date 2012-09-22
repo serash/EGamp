@@ -64,13 +64,13 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Engine\Asio\MyASIODriver.cs" />
-    <Compile Include="Engine\Asio\MyAsioDriverCapability.cs" />
-    <Compile Include="Engine\Asio\MyASIODriverExt.cs" />
+    <Compile Include="Engine\Asio\ASIODriver.cs" />
+    <Compile Include="Engine\Asio\AsioDriverCapability.cs" />
+    <Compile Include="Engine\Asio\ASIODriverExt.cs" />
     <Compile Include="Engine\Asio\MyAsioOut.cs" />
-    <Compile Include="Engine\Asio\MyASIOSampleConvertor.cs" />
-    <Compile Include="Engine\Asio\MyAsioSampleType.cs" />
-    <Compile Include="Engine\Asio\MyASIOStructures.cs" />
+    <Compile Include="Engine\Asio\ASIOSampleConvertor.cs" />
+    <Compile Include="Engine\Asio\AsioSampleType.cs" />
+    <Compile Include="Engine\Asio\ASIOStructures.cs" />
     <Compile Include="Engine\Effects\Amplifier.cs" />
     <Compile Include="Engine\Effects\EffectChain.cs" />
     <Compile Include="Engine\Effects\EffectStream .cs" />

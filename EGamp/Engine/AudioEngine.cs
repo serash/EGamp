@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using EGamp.Engine.Asio;
@@ -20,7 +21,8 @@ namespace EGamp.Engine
         private IWaveProvider waveIn = null;
         private SampleAggregator aggregator = null;
         private EffectStream waveStream = null;
-        private IWavePlayer wavePlayer = null;
+        private MyAsioOut wavePlayer = null;
+        private BufferedWaveProvider bwp;
 
         private event EventHandler<AddEffectEventArgs> effectAdded;
 
@@ -42,6 +44,7 @@ namespace EGamp.Engine
             remove { effectAdded -= value; }
         }
 
+        private WaveFileWriter writer;
         public AudioEngine(int deviceNumber = 0)
         {
             aggregator = new SampleAggregator();
@@ -59,10 +62,11 @@ namespace EGamp.Engine
             waveStream = new EffectStream(new WaveProviderStream(waveIn));
 
             // asioOut
-            wavePlayer = new WaveOut();
-            //wavePlayer = new WasapiOut(AudioClientShareMode.Shared, 50);
-            //wavePlayer = new MyAsioOut();
-            //wavePlayer.AudioAvailable += AudioAvailableEvent;
+            wavePlayer = new MyAsioOut();
+            wavePlayer.AudioAvailable += AudioAvailableEvent;
+            bwp = new BufferedWaveProvider(new WaveFormat(44100, WaveIn.GetCapabilities(deviceNumber).Channels));
+
+            this.writer = new WaveFileWriter("C:\\test.wav", new WaveFormat(44100, 1));
         }
 
         private ISampleProvider createSampleStream()
@@ -71,6 +75,17 @@ namespace EGamp.Engine
             var sampleStream = new NotifyingSampleProvider(inputStream);
             sampleStream.Sample += (s, e) => aggregator.Add(e.Left);
             return sampleStream;
+        }
+
+        public void AudioAvailableEvent(object sender, Asio.AsioAudioAvailableEventArgs e)
+        {
+            var samples = e.GetAsInterleavedSamples();
+            Logger.Log("sample: " + samples[0]);
+            writer.WriteSamples(samples, 0, samples.Length);
+            //byte[] data = new byte[e.SamplesPerBuffer];
+            //Marshal.Copy(e.InputBuffers[0], data, 0, e.SamplesPerBuffer);
+            //bwp.AddSamples(data, 0, e.SamplesPerBuffer);
+            //waveStream.writeFromAsioInput(e.InputBuffers, e.SamplesPerBuffer, e.AsioSampleType);
         }
 
         public void AddEffect(Effect effect)
@@ -90,9 +105,8 @@ namespace EGamp.Engine
 
         public void Initialize()
         {
-            //wavePlayer.InitRecordAndPlayback(waveStream, 1, 44100);
-            sourceStream.StartRecording();
-            wavePlayer.Init(new SampleToWaveProvider(this.createSampleStream())); 
+            //wavePlayer.InitRecordAndPlayback(new SampleToWaveProvider(this.createSampleStream()), 1, 44100); 
+            wavePlayer.InitRecordAndPlayback(bwp, 1, 44100);
         }
 
         public void Play()
@@ -120,11 +134,6 @@ namespace EGamp.Engine
         public bool IsPlaying()
         {
             return wavePlayer.PlaybackState == PlaybackState.Playing;
-        }
-
-        public void AudioAvailableEvent(object sender, Asio.AsioAudioAvailableEventArgs e)
-        {
-            Logger.Log("Processing 16 bit sample: " + e.GetAsInterleavedSamples()[0]);
         }
     }
 

@@ -12,7 +12,7 @@ namespace EGamp.Engine.Asio
     /// ASIO Out Player. New implementation using an internal C# binding.
     /// 
     /// This implementation is only supporting Short16Bit and Float32Bit formats and is optimized 
-    /// for 2 outputs channels .
+    /// for 2 outputs channels .    
     /// SampleRate is supported only if ASIODriver is supporting it (TODO: Add a resampler otherwhise).
     ///     
     /// This implementation is probably the first ASIODriver binding fully implemented in C#!
@@ -22,12 +22,12 @@ namespace EGamp.Engine.Asio
     /// </summary>
     public class MyAsioOut : IWavePlayer
     {
-        private MyASIODriverExt driver;
+        private ASIODriverExt driver;
         private IWaveProvider sourceStream;
         private PlaybackState playbackState;
         private int nbSamples;
         private byte[] waveBuffer;
-        private MyASIOSampleConvertor.SampleConvertor convertor;
+        private ASIOSampleConvertor.SampleConvertor convertor;
         private string driverName;
 
         private SynchronizationContext syncContext;
@@ -46,8 +46,7 @@ namespace EGamp.Engine.Asio
         /// Initializes a new instance of the <see cref="MyAsioOut"/> class with the first 
         /// available ASIO Driver.
         /// </summary>
-        public MyAsioOut()
-            : this(0)
+        public MyAsioOut() : this(0)
         {
         }
 
@@ -112,7 +111,7 @@ namespace EGamp.Engine.Asio
         /// <returns>an array of driver names</returns>
         public static String[] GetDriverNames()
         {
-            return MyASIODriver.GetASIODriverNames();
+            return ASIODriver.GetASIODriverNames();
         }
 
         /// <summary>
@@ -133,10 +132,10 @@ namespace EGamp.Engine.Asio
         private void initFromName(String driverName)
         {
             // Get the basic driver
-            MyASIODriver basicDriver = MyASIODriver.GetASIODriverByName(driverName);
+            ASIODriver basicDriver = ASIODriver.GetASIODriverByName(driverName);
 
             // Instantiate the extended driver
-            driver = new MyASIODriverExt(basicDriver);
+            driver = new ASIODriverExt(basicDriver);
             this.ChannelOffset = 0;
         }
 
@@ -209,7 +208,7 @@ namespace EGamp.Engine.Asio
                 this.NumberOfOutputChannels = waveProvider.WaveFormat.Channels;
 
                 // Select the correct sample convertor from WaveFormat -> ASIOFormat
-                convertor = MyASIOSampleConvertor.SelectSampleConvertor(waveProvider.WaveFormat, driver.Capabilities.OutputChannelInfos[0].type);
+                convertor = ASIOSampleConvertor.SelectSampleConvertor(waveProvider.WaveFormat, driver.Capabilities.OutputChannelInfos[0].type);
             }
             else
             {
@@ -372,7 +371,7 @@ namespace EGamp.Engine.Asio
         /// <param name="inputBuffers">Pointers to the ASIO buffers for each channel</param>
         /// <param name="samplesPerBuffer">Number of samples in each buffer</param>
         /// <param name="asioSampleType">Audio format within each buffer</param>
-        public AsioAudioAvailableEventArgs(IntPtr[] inputBuffers, int samplesPerBuffer, MyAsioSampleType asioSampleType)
+        public AsioAudioAvailableEventArgs(IntPtr[] inputBuffers, int samplesPerBuffer, AsioSampleType asioSampleType)
         {
             this.InputBuffers = inputBuffers;
             this.SamplesPerBuffer = samplesPerBuffer;
@@ -393,7 +392,7 @@ namespace EGamp.Engine.Asio
         /// Audio format within each buffer
         /// Most commonly this will be one of, Int32LSB, Int16LSB, Int24LSB or Float32LSB
         /// </summary>
-        public MyAsioSampleType AsioSampleType { get; private set; }
+        public AsioSampleType AsioSampleType { get; private set; }
 
         
         /// <summary>
@@ -407,7 +406,7 @@ namespace EGamp.Engine.Asio
             int index = 0;
             unsafe
             {
-                if (AsioSampleType == Asio.MyAsioSampleType.Int32LSB)
+                if (AsioSampleType == AsioSampleType.Int32LSB)
                 {
                     for (int n = 0; n < SamplesPerBuffer; n++)
                     {
@@ -417,7 +416,7 @@ namespace EGamp.Engine.Asio
                         }
                     }
                 }
-                else if (AsioSampleType == Asio.MyAsioSampleType.Int16LSB)
+                else if (AsioSampleType == AsioSampleType.Int16LSB)
                 {
                     for (int n = 0; n < SamplesPerBuffer; n++)
                     {
@@ -427,7 +426,7 @@ namespace EGamp.Engine.Asio
                         }
                     }
                 }
-                else if (AsioSampleType == Asio.MyAsioSampleType.Int24LSB)
+                else if (AsioSampleType == AsioSampleType.Int24LSB)
                 {
                     for (int n = 0; n < SamplesPerBuffer; n++)
                     {
@@ -441,7 +440,7 @@ namespace EGamp.Engine.Asio
                         }
                     }
                 }
-                else if (AsioSampleType == Asio.MyAsioSampleType.Float32LSB)
+                else if (AsioSampleType == AsioSampleType.Float32LSB)
                 {
                     for (int n = 0; n < SamplesPerBuffer; n++)
                     {
