@@ -9,13 +9,71 @@ Assembly System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e0
 	hash=None, flags=None
 Assembly System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089: 
 	hash=None, flags=None
-Class AudioLibrary.AudioEngine: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+Class EffectsLibrary.EffectParameter: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(Double, Double, Double, System.String): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Events:
+    EffectsLibrary.UpdateEventHandler valueChanged: SpecialName
+  Methods:
+    getValue(): PrivateScope, Public, HideBySig
+    setValue(Double): PrivateScope, Public, HideBySig
+    getName(): PrivateScope, Public, HideBySig
+    getMin(): PrivateScope, Public, HideBySig
+    getMax(): PrivateScope, Public, HideBySig
+    getDefaultVal(): PrivateScope, Public, HideBySig
+    add_valueChanged(UpdateEventHandler): PrivateScope, Public, HideBySig, SpecialName
+    remove_valueChanged(UpdateEventHandler): PrivateScope, Public, HideBySig, SpecialName
+Interface EffectsLibrary.IEffect: AutoLayout, AnsiClass, Class, Public, ClassSemanticsMask, Abstract, BeforeFieldInit
+  Methods:
+    initialize(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask, Abstract
+    block(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask, Abstract
+    update(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask, Abstract
+    Sample(Double* IsImplicitlyDereferenced, Double* IsImplicitlyDereferenced): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask, Abstract
+    getName(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask, Abstract
+Class EffectsLibrary.Amplifier: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
     Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Interfaces:
+    EffectsLibrary.IEffect
+  Methods:
+    initialize(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    block(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    update(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    Sample(Double* IsImplicitlyDereferenced, Double* IsImplicitlyDereferenced): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    getName(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    getAmplify(): PrivateScope, Public, HideBySig
+Class EffectsLibrary.Tremolo: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(UInt32): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Interfaces:
+    EffectsLibrary.IEffect
+  Methods:
+    initialize(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    block(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    update(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    Sample(Double* IsImplicitlyDereferenced, Double* IsImplicitlyDereferenced): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    getName(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    getFrequency(): PrivateScope, Public, HideBySig
+    getAmount(): PrivateScope, Public, HideBySig
+    getStereoSeperation(): PrivateScope, Public, HideBySig
+Class EffectsLibrary.EffectsCollection: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+  :System.Collections.Generic.List`1[EffectsLibrary.IEffect]
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Methods:
+    moveUp(Int32): PrivateScope, Public, HideBySig
+    moveDown(Int32): PrivateScope, Public, HideBySig
+Class AudioLibrary.AudioEngine: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(UInt32): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
   Methods:
     engineStatus(): PrivateScope, Public, HideBySig
     getRenderDevices(): PrivateScope, Public, HideBySig
     getCaptureDevices(): PrivateScope, Public, HideBySig
     setRenderDevice(UInt32): PrivateScope, Public, HideBySig
     setCaptureDevice(UInt32): PrivateScope, Public, HideBySig
-    initializeDevices(): PrivateScope, Public, HideBySig
-    recordAudioStream(): PrivateScope, Public, HideBySig
+    setDefaultRenderDevice(): PrivateScope, Public, HideBySig
+    setDefaultCaptureDevice(): PrivateScope, Public, HideBySig
+    initializeCaptureDevice(): PrivateScope, Public, HideBySig
+    initializeRenderDevice(): PrivateScope, Public, HideBySig
+    startAudioStream(): PrivateScope, Public, HideBySig
+    stopAudioStream(): PrivateScope, Public, HideBySig
+    dispose(): PrivateScope, Public, HideBySig
+    getErrorCode(Int32 IsLong): PrivateScope, Public, Static, HideBySig
+    Failed(Int32 IsLong): PrivateScope, Public, Static, HideBySig

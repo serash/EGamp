@@ -1,10 +1,10 @@
-## EGamp ##
-## Electric Guitar amp ##
+# EGamp
+# Electric Guitar amp
 
-## TODO's ##
+## TODO's 
  - use 32 bit audio to increase max amplitute for amplifier
  - add more effects
  - reduce delay of realtime play
  
- ## FIXME's ##
+## FIXME's
  

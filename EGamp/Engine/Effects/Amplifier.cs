@@ -26,7 +26,6 @@ namespace EGamp.Engine.Effects
             amp = 1;
         }
 
-
         public override void Slider(object o, RoutedPropertyChangedEventArgs<double> e)
         {
             if (e.Source.Equals(Sliders[0].MainSlider))

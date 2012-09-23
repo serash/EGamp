@@ -1,18 +1,24 @@
-﻿Build started 9/22/2012 8:01:42 PM.
+﻿Build started 9/23/2012 9:16:02 PM.
      1>Project "C:\Users\dries\Documents\GitHub\EGamp\AudioLibrary\AudioLibrary.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\CL.exe /c /AI"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\\" /AI"C:\Program Files (x86)\Windows Kits\8.0\References\CommonConfiguration\Neutral" /AI"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\Facades\\" /Zi /clr /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDLL /D _UNICODE /D UNICODE /EHa /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"stdafx.h" /Fp"Debug\AudioLibrary.pch" /Fo"Debug\\" /Fd"Debug\vc110.pdb" /TP /FU"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\mscorlib.dll" /FU"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.Data.dll" /FU"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.dll" /FU"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.Xml.dll" /analyze- /errorReport:prompt /clr:nostdlib AudioLibrary.cpp
+         C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\CL.exe /c /AI"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\\" /AI"C:\Program Files (x86)\Windows Kits\8.0\References\CommonConfiguration\Neutral" /AI"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\Facades\\" /Zi /clr /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDLL /D _UNICODE /D UNICODE /EHa /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"stdafx.h" /Fp"Debug\AudioLibrary.pch" /Fo"Debug\\" /Fd"Debug\vc110.pdb" /TP /FU"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\mscorlib.dll" /FU"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.Data.dll" /FU"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.dll" /FU"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.Xml.dll" /analyze- /errorReport:prompt /clr:nostdlib AudioLibrary.cpp EffectsLibrary.cpp
          AudioLibrary.cpp
-     1>AudioLibrary.cpp(221): warning C4244: '=' : conversion from 'double' to 'REFERENCE_TIME', possible loss of data
-     1>AudioLibrary.cpp(247): warning C4244: '=' : conversion from 'double' to 'REFERENCE_TIME', possible loss of data
-     1>AudioLibrary.cpp(275): warning C4244: 'argument' : conversion from 'REFERENCE_TIME' to 'DWORD', possible loss of data
-     1>AudioLibrary.cpp(443): warning C4018: '<' : signed/unsigned mismatch
-     1>AudioLibrary.cpp(449): warning C4018: '<' : signed/unsigned mismatch
-     1>AudioLibrary.cpp(481): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\dries\documents\github\egamp\audiolibrary\EffectsLibrary.h(35): warning C4677: 'valueChanged': signature of non-private member contains assembly private type 'EffectsLibrary::UpdateEventHandler'
+                 c:\users\dries\documents\github\egamp\audiolibrary\EffectsLibrary.h(25) : see declaration of 'EffectsLibrary::UpdateEventHandler'
+     1>AudioLibrary.cpp(328): warning C4244: '=' : conversion from 'double' to 'REFERENCE_TIME', possible loss of data
+     1>AudioLibrary.cpp(621): warning C4018: '<' : signed/unsigned mismatch
+     1>AudioLibrary.cpp(627): warning C4018: '<' : signed/unsigned mismatch
+     1>AudioLibrary.cpp(658): warning C4018: '<' : signed/unsigned mismatch
+         EffectsLibrary.cpp
+     1>c:\users\dries\documents\github\egamp\audiolibrary\EffectsLibrary.h(35): warning C4677: 'valueChanged': signature of non-private member contains assembly private type 'EffectsLibrary::UpdateEventHandler'
+                 c:\users\dries\documents\github\egamp\audiolibrary\EffectsLibrary.h(25) : see declaration of 'EffectsLibrary::UpdateEventHandler'
+         Generating Code...
+     1>c:\users\dries\documents\github\egamp\audiolibrary\audiolibrary.cpp(739): warning C4715: 'AudioLibrary::AudioEngine::getErrorCode' : not all control paths return a value
        Link:
          C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\dries\Documents\GitHub\EGamp\Debug\AudioLibrary.dll" /INCREMENTAL /NOLOGO user32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\dries\Documents\GitHub\EGamp\Debug\AudioLibrary.pdb" /ASSEMBLYDEBUG /TLBID:1 /DYNAMICBASE /FIXED:NO /NXCOMPAT /MACHINE:X86 /DLL Debug\app.res
          Debug\AssemblyInfo.obj
          Debug\AudioLibrary.obj
+         Debug\EffectsLibrary.obj
          Debug\Stdafx.obj
          "Debug\.NETFramework,Version=v4.5.AssemblyAttributes.obj"
          AudioLibrary.vcxproj -> C:\Users\dries\Documents\GitHub\EGamp\Debug\AudioLibrary.dll
@@ -20,4 +26,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:03.97
+Time Elapsed 00:00:02.45

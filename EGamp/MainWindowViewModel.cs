@@ -12,6 +12,7 @@ using EGamp.Engine.Effects;
 using EGamp.Visualization;
 using NAudio.CoreAudioApi;
 using NAudio.Wave;
+using AudioLibrary;
 
 namespace EGamp
 {

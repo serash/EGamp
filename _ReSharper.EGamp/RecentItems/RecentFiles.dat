@@ -1,6 +1,5 @@
 ﻿<RecentFiles>
   <RecentFiles>
-    <File id="4BECB08E-C9F1-43CF-BF6C-E243E66246F5/f:NuGet.Config/l:.nuget?NuGet.Config" caret="0" fromTop="0" />
     <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/f:MainWindow.xaml" caret="1114" fromTop="9" />
     <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Engine/f:SampleAggregator.cs" caret="1454" fromTop="36" />
     <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Engine/d:Asio/f:AsioDriverCapability.cs" caret="681" fromTop="26" />
@@ -8,20 +7,28 @@
     <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Engine/d:Asio/f:ASIOSampleConvertor.cs" caret="266" fromTop="9" />
     <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Engine/d:Asio/f:ASIOStructures.cs" caret="381" fromTop="0" />
     <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Engine/d:Asio/f:AsioSampleType.cs" caret="277" fromTop="13" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/f:MainWindowViewModel.cs" caret="1170" fromTop="4" />
     <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Engine/d:Asio/f:MyAsioOut.cs" caret="8035" fromTop="19" />
     <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Engine/d:Asio/f:ASIODriverExt.cs" caret="9515" fromTop="89" />
     <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Engine/f:IAudioEngine.cs" caret="433" fromTop="15" />
     <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Engine/f:WaveProviderStream.cs" caret="1225" fromTop="20" />
     <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Engine/f:FileAudioEngine.cs" caret="2510" fromTop="29" />
     <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Visualization/f:PolylineWaveFormControl.xaml.cs" caret="3282" fromTop="21" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Engine/f:AudioEngine.cs" caret="483" fromTop="11" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Engine/d:Effects/f:EffectStream .cs" caret="7345" fromTop="38" />
     <File id="9F99AC40-ECD6-49D1-9ED6-BF5BDE88E2F3/f:Stdafx.cpp" caret="0" fromTop="0" />
-    <File id="9F99AC40-ECD6-49D1-9ED6-BF5BDE88E2F3/f:Stdafx.h" caret="176" fromTop="5" />
-    <File id="9F99AC40-ECD6-49D1-9ED6-BF5BDE88E2F3/f:AudioLibrary.h" caret="3520" fromTop="30" />
-    <File id="5E1FF295-74A6-43AC-9554-4BB0A3220DA0/f:Program.cs" caret="2044" fromTop="25" />
-    <File id="9F99AC40-ECD6-49D1-9ED6-BF5BDE88E2F3/f:AudioLibrary.cpp" caret="10239" fromTop="27" />
+    <File id="9F99AC40-ECD6-49D1-9ED6-BF5BDE88E2F3/f:Stdafx.h" caret="266" fromTop="8" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Engine/f:AudioEngine.cs" caret="543" fromTop="19" />
+    <File id="7020124F-9FFC-4AC3-8F3D-AAB8E0240759/f:xtgmath.h/l:..?..?..?..?..?Program Files (x86)?Microsoft Visual Studio 11.0?VC?include?xtgmath.h" caret="2517" fromTop="14" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Engine/d:Effects/f:Amplifier.cs" caret="0" fromTop="0" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Engine/d:Effects/f:Effect.cs" caret="1856" fromTop="53" />
+    <File id="9F99AC40-ECD6-49D1-9ED6-BF5BDE88E2F3/f:ReadMe.txt" caret="0" fromTop="0" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/f:MainWindowViewModel.cs" caret="464" fromTop="19" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Engine/d:Effects/f:Tremolo.cs" caret="1405" fromTop="27" />
+    <File id="5E1FF295-74A6-43AC-9554-4BB0A3220DA0/f:Program.cs" caret="3449" fromTop="84" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Engine/d:Effects/f:EffectChain.cs" caret="569" fromTop="20" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Engine/d:Effects/f:EffectStream .cs" caret="6913" fromTop="48" />
+    <File id="9F99AC40-ECD6-49D1-9ED6-BF5BDE88E2F3/f:EffectsLibrary.h" caret="424" fromTop="7" />
+    <File id="9F99AC40-ECD6-49D1-9ED6-BF5BDE88E2F3/f:EffectsLibrary.cpp" caret="718" fromTop="16" />
+    <File id="9F99AC40-ECD6-49D1-9ED6-BF5BDE88E2F3/f:AudioLibrary.cpp" caret="15804" fromTop="15" />
+    <File id="9F99AC40-ECD6-49D1-9ED6-BF5BDE88E2F3/f:AudioLibrary.h" caret="3150" fromTop="10" />
   </RecentFiles>
   <RecentEdits>
     <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Engine/d:Asio/f:ASIOStructures.cs" caret="83" fromTop="3" />
@@ -33,13 +40,16 @@
     <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Engine/d:Asio/f:ASIOSampleConvertor.cs" caret="266" fromTop="9" />
     <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Engine/d:Asio/f:AsioSampleType.cs" caret="180" fromTop="9" />
     <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Engine/d:Asio/f:MyAsioOut.cs" caret="16288" fromTop="26" />
-    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/f:MainWindowViewModel.cs" caret="1293" fromTop="6" />
     <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Engine/f:IAudioEngine.cs" caret="473" fromTop="15" />
     <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Engine/d:Effects/f:EffectStream .cs" caret="2298" fromTop="18" />
     <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Engine/f:AudioEngine.cs" caret="3018" fromTop="18" />
-    <File id="9F99AC40-ECD6-49D1-9ED6-BF5BDE88E2F3/f:Stdafx.h" caret="176" fromTop="5" />
-    <File id="9F99AC40-ECD6-49D1-9ED6-BF5BDE88E2F3/f:AudioLibrary.h" caret="3520" fromTop="30" />
-    <File id="5E1FF295-74A6-43AC-9554-4BB0A3220DA0/f:Program.cs" caret="2041" fromTop="25" />
-    <File id="9F99AC40-ECD6-49D1-9ED6-BF5BDE88E2F3/f:AudioLibrary.cpp" caret="10329" fromTop="20" />
+    <File id="9F99AC40-ECD6-49D1-9ED6-BF5BDE88E2F3/f:Stdafx.h" caret="266" fromTop="8" />
+    <File id="9F99AC40-ECD6-49D1-9ED6-BF5BDE88E2F3/f:AudioLibrary.h" caret="2553" fromTop="11" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/d:Engine/d:Effects/f:Amplifier.cs" caret="615" fromTop="19" />
+    <File id="9F99AC40-ECD6-49D1-9ED6-BF5BDE88E2F3/f:AudioLibrary.cpp" caret="16553" fromTop="27" />
+    <File id="5E1FF295-74A6-43AC-9554-4BB0A3220DA0/f:Program.cs" caret="3410" fromTop="37" />
+    <File id="AD11D271-5619-4F3B-863E-AAE07101F26C/f:MainWindowViewModel.cs" caret="464" fromTop="19" />
+    <File id="9F99AC40-ECD6-49D1-9ED6-BF5BDE88E2F3/f:EffectsLibrary.cpp" caret="716" fromTop="15" />
+    <File id="9F99AC40-ECD6-49D1-9ED6-BF5BDE88E2F3/f:EffectsLibrary.h" caret="2189" fromTop="21" />
   </RecentEdits>
 </RecentFiles>

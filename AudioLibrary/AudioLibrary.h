@@ -6,36 +6,29 @@
 #include <Windows.h>
 #include <vector>
 #using <mscorlib.dll>
+#include "EffectsLibrary.h"
 
 using System::String;
 using System::Convert;
+using System::TimeSpan;
 using namespace System;
 using namespace System::Collections::Generic;
 using namespace System::IO;
+using namespace System::Threading;
+using namespace System::Text;
+using namespace EffectsLibrary;
 
 namespace AudioLibrary {
-	
-	// Definitions
-	#define REFTIMES_PER_SEC  10000000
-	#define REFTIMES_PER_MILLISEC  10000
-	#define EXIT_ON_ERROR(hres)  \
-				  if (FAILED(hres)) { goto Exit; }
-	#define SAFE_RELEASE(punk)  \
-				  if ((punk) != NULL)  \
-					{ (punk)->Release(); (punk) = NULL; }
-
 	// Constants
 	const CLSID CLSID_MMDeviceEnumerator = __uuidof(MMDeviceEnumerator);
 	const IID IID_IMMDeviceEnumerator = __uuidof(IMMDeviceEnumerator);
 	const IID IID_IAudioClient = __uuidof(IAudioClient);
 	const IID IID_IAudioCaptureClient = __uuidof(IAudioCaptureClient);
 	const IID IID_IAudioRenderClient = __uuidof(IAudioRenderClient);
-	const REFERENCE_TIME hnsRequestedDuration = REFTIMES_PER_SEC;
 	const BYTE WaveHeader[] = { 'R',   'I',   'F',   'F',  0x00,  0x00,  0x00,  0x00, 'W',   'A',   'V',   'E',   'f',   'm',   't',   ' ', 0x00, 0x00, 0x00, 0x00 };
 	const BYTE WaveData[] = { 'd', 'a', 't', 'a'};
-	const BYTE NullByte = 0;
-	
-	// Helper Classes
+
+	// Helper Classes/Structs
 	struct WAVEHEADER
 	{
 		DWORD   dwRiff;                     // "RIFF"
@@ -44,13 +37,12 @@ namespace AudioLibrary {
 		DWORD   dwFmt;                      // "fmt "
 		DWORD   dwFmtSize;                  // Wave Format Size
 	};
-
 	private ref class WaveFileWriter
 	{
 	public:
 		WaveFileWriter(const char *filename_, WAVEFORMATEX *waveFormat_);
 		void open();
-		bool writeData(BYTE* data, UINT32 dataSize);
+		bool writeData(const BYTE* data, UINT32 dataSize);
 		void close();
 	private:
 		String ^filename;
@@ -60,18 +52,19 @@ namespace AudioLibrary {
 		DWORD waveFileSize;
 		DWORD headerSize;
 	};
-
 	private ref class AudioStream {
 	public:
 		AudioStream();
 		~AudioStream();
 		void openWriter();
 		void closeWriter();
-		bool initialize();
-		bool initialize(int bufferSize);
+		HRESULT initialize(int bufferSize);
+		void dispose();
+		UINT32 getBufferedSize();
 		HRESULT setCaptureFormat(WAVEFORMATEX *captureFormat_);
 		HRESULT setRenderFormat(WAVEFORMATEX *renderFormat_);
-		HRESULT storeData(const BYTE *pData, UINT32 numFramesAvailable, BOOL *bDone);
+		HRESULT storeNullData(UINT32 numFramesAvailable);
+		HRESULT storeData(const BYTE *pData, UINT32 numFramesAvailable);
 		HRESULT loadData(BYTE *pData, UINT32 numFramesAvailable, DWORD *flags);
 		// flags is 0 if at least one frame of real data is available else its AUDCLNT_BUFFERFLAGS_SILENT
 	private:
@@ -79,31 +72,40 @@ namespace AudioLibrary {
 		WAVEFORMATEX *captureFormat;
 		BYTE *data;
 		UINT32 dataSize;
+		UINT32 bufferedSize;
 		DWORD currentFlags;
-		WaveFileWriter ^writer;
+		WaveFileWriter ^renderWriter;
+		WaveFileWriter ^captureWriter;
 	};
+
 
 	// Class
 	public ref class AudioEngine
 	{
 	public:
-		AudioEngine();
+		AudioEngine(UINT32 _EngineLatencyInMS);
 		HRESULT engineStatus();
 		array<String^> ^getRenderDevices();
 		array<String^> ^getCaptureDevices();
-		bool setRenderDevice(UINT num);
-		bool setCaptureDevice(UINT num);
-		bool initializeDevices();
-		bool recordAudioStream();
-	private:
+		HRESULT setRenderDevice(UINT num);
+		HRESULT setCaptureDevice(UINT num);
+		HRESULT setDefaultRenderDevice();
+		HRESULT setDefaultCaptureDevice();
+		HRESULT initializeCaptureDevice();
+		HRESULT initializeRenderDevice();
+		HRESULT startAudioStream();
+		HRESULT stopAudioStream();
 		void dispose();
-		void initialize();
+		static String ^getErrorCode(HRESULT hres);
+		static bool Failed(HRESULT hres);
+	private:
+		void initialize(UINT32 _EngineLatencyInMS);
 		HRESULT makeRenderDeviceList();
 		HRESULT makeCaptureDeviceList();
-		bool checkForFailure(HRESULT hres);
+		void captureAudioStream();
+		void renderAudioStream();
 
 		HRESULT initializeResult;
-		int result;
 		IAudioClient *pCaptureAudioClient;
 		IAudioCaptureClient *pCaptureClient;
 		IAudioClient *pRenderAudioClient;
@@ -112,11 +114,24 @@ namespace AudioLibrary {
 		IMMDeviceCollection *pCaptureDevices;
 		IMMDevice *pRenderDevice;
 		IMMDevice *pCaptureDevice;
-		REFERENCE_TIME captureActualDuration;
+		IMMDeviceEnumerator *pEnumerator;
 		REFERENCE_TIME renderActualDuration;
-		UINT32 bufferFrameCount;
+		UINT32 renderBufferFrameCount;
+		UINT32 captureBufferFrameCount;
+		size_t frameSize;
+		LONG engineLatency;
+		BOOL audioStreamStatus;
+		EffectsCollection effects;
 
+		// Handles
+		HANDLE renderShutdownEvent;
+		HANDLE captureShutdownEvent;
+		HANDLE renderSamplesReadyEvent;
+		HANDLE captureSamplesReadyEvent;
 
+		// CLI properties
+		Thread ^renderThread;
+		Thread ^captureThread;
 		AudioStream ^audioStream;
 		array<String^> ^renderDevicesList;
 		array<String^> ^captureDevicesList;

@@ -1,5 +1,5 @@
-2012/09/22-14:40:09.456 10dc Recovering log #138
-2012/09/22-14:40:09.458 10dc Level-0 table #140: started
-2012/09/22-14:40:09.580 10dc Level-0 table #140: 33792 bytes OK
-2012/09/22-14:40:09.648 10dc Delete type=0 #138
-2012/09/22-14:40:09.649 10dc Delete type=3 #136
+2012/09/23-09:35:05.964 8dc Recovering log #144
+2012/09/23-09:35:06.407 8dc Level-0 table #147: started
+2012/09/23-09:35:07.359 8dc Level-0 table #147: 3731 bytes OK
+2012/09/23-09:35:09.313 8dc Delete type=0 #144
+2012/09/23-09:35:09.313 8dc Delete type=3 #142
