@@ -12,7 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using EGamp.Engine.Effects;
+using EffectsLibrary;
 
 namespace EGamp.Visualization
 {
@@ -28,7 +28,7 @@ namespace EGamp.Visualization
             effectsList = new List<EffectVisualization>();
         }
 
-        public void AddEffect(Effect effect)
+        public void AddEffect(IEffect effect)
         {
             EffectVisualization newEffect = new EffectVisualization(effect);
             effectsList.Add(newEffect);

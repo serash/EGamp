@@ -70,10 +70,13 @@ Class AudioLibrary.AudioEngine: AutoLayout, AnsiClass, Class, Public, BeforeFiel
     setCaptureDevice(UInt32): PrivateScope, Public, HideBySig
     setDefaultRenderDevice(): PrivateScope, Public, HideBySig
     setDefaultCaptureDevice(): PrivateScope, Public, HideBySig
-    initializeCaptureDevice(): PrivateScope, Public, HideBySig
-    initializeRenderDevice(): PrivateScope, Public, HideBySig
+    initializeDevices(): PrivateScope, Public, HideBySig
     startAudioStream(): PrivateScope, Public, HideBySig
     stopAudioStream(): PrivateScope, Public, HideBySig
+    volumeDown(Single): PrivateScope, Public, HideBySig
+    volumeUp(Single): PrivateScope, Public, HideBySig
+    setVolume(Single): PrivateScope, Public, HideBySig
+    toggleMute(): PrivateScope, Public, HideBySig
     dispose(): PrivateScope, Public, HideBySig
     getErrorCode(Int32 IsLong): PrivateScope, Public, Static, HideBySig
     Failed(Int32 IsLong): PrivateScope, Public, Static, HideBySig

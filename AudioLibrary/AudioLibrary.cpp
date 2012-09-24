@@ -257,21 +257,26 @@ HRESULT AudioLibrary::AudioEngine::setDefaultCaptureDevice()
 	return hr;
 }
 
-HRESULT AudioLibrary::AudioEngine::initializeCaptureDevice()
+HRESULT AudioLibrary::AudioEngine::initializeDevices()
 {
     HRESULT hr = S_OK;
-	WAVEFORMATEX *captureFormat;
+	WAVEFORMATEX *waveFormat;
 
 	// INIT CAPTURE DEVICE
 	pin_ptr<IAudioClient *> pinnedCaptureAudioClientPtr = &pCaptureAudioClient;
 	hr = pCaptureDevice->Activate(IID_IAudioClient, CLSCTX_ALL, NULL, (void**)pinnedCaptureAudioClientPtr);
 	if(FAILED(hr)) return hr;
 
-    hr = pCaptureAudioClient->GetMixFormat(&captureFormat);
+    hr = pCaptureAudioClient->GetMixFormat(&waveFormat);
 	if(FAILED(hr)) return hr;
-    frameSize = (captureFormat->wBitsPerSample / 8) * captureFormat->nChannels;
+    frameSize = waveFormat->nBlockAlign;
 
-    hr = pCaptureAudioClient->Initialize(AUDCLNT_SHAREMODE_SHARED, AUDCLNT_STREAMFLAGS_EVENTCALLBACK | AUDCLNT_STREAMFLAGS_NOPERSIST, engineLatency*10000, 0, captureFormat, NULL);
+    hr = audioStream->setWaveFormat(waveFormat);
+	if(FAILED(hr)) return hr;
+
+    hr = pCaptureAudioClient->Initialize(AUDCLNT_SHAREMODE_SHARED, 
+		AUDCLNT_STREAMFLAGS_EVENTCALLBACK | AUDCLNT_STREAMFLAGS_NOPERSIST, 
+		engineLatency*10000, 0, waveFormat, NULL); // latency in 100 nano seconds
 	if(FAILED(hr)) return hr;
 
 	// set EventHandle
@@ -279,53 +284,40 @@ HRESULT AudioLibrary::AudioEngine::initializeCaptureDevice()
 	if(FAILED(hr)) return hr;
 	
     // Get the size of the allocated buffer.
-	pin_ptr<UINT32> pinnedBufferFrameCountPtr = &captureBufferFrameCount;
-    hr = pCaptureAudioClient->GetBufferSize(pinnedBufferFrameCountPtr);
+	pin_ptr<UINT32> pinnedCaptureBufferFrameCountPtr = &captureBufferFrameCount;
+    hr = pCaptureAudioClient->GetBufferSize(pinnedCaptureBufferFrameCountPtr);
 	if(FAILED(hr)) return hr;
 	
 	pin_ptr<IAudioCaptureClient *> pinnedCaptureClientPtr = &pCaptureClient;
     hr = pCaptureAudioClient->GetService(IID_IAudioCaptureClient, (void**)pinnedCaptureClientPtr);
 	if(FAILED(hr)) return hr;
 
-    hr = audioStream->setCaptureFormat(captureFormat);
-	if(FAILED(hr)) return hr;
-	return hr;
-}
-
-HRESULT AudioLibrary::AudioEngine::initializeRenderDevice()
-{
-    HRESULT hr = S_OK;
-	WAVEFORMATEX *renderFormat;
-
 	// INIT RENDER DEVICE
 	pin_ptr<IAudioClient *> pinnedRenderAudioClientPtr = &pRenderAudioClient;
 	hr = pRenderDevice->Activate(IID_IAudioClient, CLSCTX_ALL, NULL, (void**)pinnedRenderAudioClientPtr);
 	if(FAILED(hr)) return hr;
 
-    hr = pRenderAudioClient->GetMixFormat(&renderFormat);
-	if(FAILED(hr)) return hr;
-
-    hr = pRenderAudioClient->Initialize(AUDCLNT_SHAREMODE_SHARED, AUDCLNT_STREAMFLAGS_EVENTCALLBACK | AUDCLNT_STREAMFLAGS_NOPERSIST, engineLatency*10000, 0, renderFormat, NULL);
+    hr = pRenderAudioClient->Initialize(AUDCLNT_SHAREMODE_SHARED, 
+		AUDCLNT_STREAMFLAGS_EVENTCALLBACK | AUDCLNT_STREAMFLAGS_NOPERSIST, 
+		engineLatency*10000, 0, waveFormat, NULL);
 	if(FAILED(hr)) return hr;
 
 	// set EventHandle
 	hr = pRenderAudioClient->SetEventHandle(renderSamplesReadyEvent);
 	if(FAILED(hr)) return hr;
 
-    hr = audioStream->setRenderFormat(renderFormat);
-	if(FAILED(hr)) return hr;
-
     // Get the actual size of the allocated buffer.
-	pin_ptr<UINT32> pinnedBufferFrameCountPtr = &renderBufferFrameCount;
-    hr = pRenderAudioClient->GetBufferSize(pinnedBufferFrameCountPtr);
+	pin_ptr<UINT32> pinnedRenderBufferFrameCountPtr = &renderBufferFrameCount;
+    hr = pRenderAudioClient->GetBufferSize(pinnedRenderBufferFrameCountPtr);
 	if(FAILED(hr)) return hr;
 	
 	pin_ptr<IAudioRenderClient *> pinnedRenderClientPtr = &pRenderClient;
     hr = pRenderAudioClient->GetService(IID_IAudioRenderClient, (void**)pinnedRenderClientPtr);
 	if(FAILED(hr)) return hr;
-
-    renderActualDuration = (double)REFTIMES_PER_SEC *
-                        renderBufferFrameCount / renderFormat->nSamplesPerSec;
+	
+	pin_ptr<ISimpleAudioVolume *> pinnedAudioVolumePtr = &pAudioVolume;
+    hr = pRenderAudioClient->GetService(IID_ISimpleAudioVolume, (void**)pinnedAudioVolumePtr);
+	if(FAILED(hr)) return hr;
 	return hr;
 }
 
@@ -354,8 +346,9 @@ void AudioLibrary::AudioEngine::captureAudioStream()
                 {
                     if (flags & AUDCLNT_BUFFERFLAGS_SILENT)
 						audioStream->storeNullData(framesAvailable*frameSize);
-                    else
+                    else {
 						hr = audioStream->storeData(pData, framesAvailable*frameSize);
+					}
                 }
                 hr = pCaptureClient->ReleaseBuffer(framesAvailable);
                 if (FAILED(hr))
@@ -368,6 +361,7 @@ void AudioLibrary::AudioEngine::captureAudioStream()
 
 void AudioLibrary::AudioEngine::renderAudioStream()
 {
+	// TODO fix the audioformat so its playable in here!
     HRESULT hr = S_OK;
     bool stillPlaying = true;
     HANDLE waitArray[2] = {renderShutdownEvent, renderSamplesReadyEvent};
@@ -389,31 +383,20 @@ void AudioLibrary::AudioEngine::renderAudioStream()
             if (SUCCEEDED(hr))
             {
                 framesAvailable = renderBufferFrameCount - padding;
-
-				if(audioStream->getBufferedSize() <= (framesAvailable*frameSize))
-				{
-                    UINT32 framesToWrite = audioStream->getBufferedSize() / frameSize;
-                    hr = pRenderClient->GetBuffer(framesToWrite, &pData);
-                    if (SUCCEEDED(hr))
-                    {
-                        //
-                        //  Copy data from the render buffer to the output buffer and bump our render pointer.
-                        //
+                UINT32 framesToWrite = min(audioStream->getAvailableData() / frameSize, framesAvailable);
+				if(framesToWrite > 0) { // if no data available, skip this render
+					hr = pRenderClient->GetBuffer(framesToWrite, &pData);
+					if (SUCCEEDED(hr))
+					{
 						audioStream->loadData(pData, framesToWrite*frameSize, &flags);
-                        hr = pRenderClient->ReleaseBuffer(framesToWrite, flags);
-                        if (!SUCCEEDED(hr))
-                        {
-							if(hr == AUDCLNT_E_INVALID_SIZE) std::cout << "AUDCLNT_E_INVALID_SIZE\n";
-							if(hr == AUDCLNT_E_BUFFER_SIZE_ERROR) std::cout << "AUDCLNT_E_BUFFER_SIZE_ERROR\n";
-							if(hr == AUDCLNT_E_OUT_OF_ORDER) std::cout << "AUDCLNT_E_OUT_OF_ORDER\n";
-							if(hr == AUDCLNT_E_DEVICE_INVALIDATED) std::cout << "AUDCLNT_E_DEVICE_INVALIDATED\n";
-							if(hr == AUDCLNT_E_SERVICE_NOT_RUNNING) std::cout << "AUDCLNT_E_SERVICE_NOT_RUNNING\n";
-							if(hr == E_INVALIDARG) std::cout << "E_INVALIDARG\n";
-                            printf("Unable to release buffer: %x\n", hr);
-                            stillPlaying = false;
-                        }
-                    }
-                }
+						hr = pRenderClient->ReleaseBuffer(framesToWrite, flags);
+						if (!SUCCEEDED(hr))
+						{
+							printf("Unable to release buffer: %x\n", hr);
+							stillPlaying = false;
+						}
+					}
+				}
             }
             break;
         }
@@ -424,7 +407,7 @@ HRESULT AudioLibrary::AudioEngine::startAudioStream()
 {
     HRESULT hr = S_OK;
 	
-	audioStream->initialize(max(captureBufferFrameCount, renderBufferFrameCount));
+	audioStream->initialize(frameSize* max(captureBufferFrameCount, renderBufferFrameCount));
 
 	hr = pCaptureAudioClient->Start();  // Start recording.
 	if(FAILED(hr)) return hr;
@@ -438,7 +421,7 @@ HRESULT AudioLibrary::AudioEngine::startAudioStream()
 	renderThread = gcnew Thread(pRenderThread);
 	
 	captureThread->Start();
-	renderThread->Start();
+	//renderThread->Start();
 
 	audioStreamStatus = true;
 	return hr;
@@ -472,6 +455,66 @@ HRESULT AudioLibrary::AudioEngine::stopAudioStream()
 	return true;
 }
 
+HRESULT AudioLibrary::AudioEngine::volumeUp(float fLevel)
+{
+    HRESULT hr = S_OK;
+	
+	float res;
+	hr = pAudioVolume->GetMasterVolume(&res);
+	if(FAILED(hr)) return hr;
+
+	res += fLevel;
+	if(res > 1.0f) res = 1.0f;
+
+	hr = pAudioVolume->SetMasterVolume(res, NULL);
+	if(FAILED(hr)) return hr;
+
+	return res;
+}
+
+HRESULT AudioLibrary::AudioEngine::volumeDown(float fLevel)
+{
+    HRESULT hr = S_OK;
+	
+	float res;
+	hr = pAudioVolume->GetMasterVolume(&res);
+	if(FAILED(hr)) return hr;
+
+	res -= fLevel;
+	if(res < 0.0f) res = 0.0f;
+
+	hr = pAudioVolume->SetMasterVolume(res, NULL);
+	if(FAILED(hr)) return hr;
+
+	return res;
+}
+
+HRESULT AudioLibrary::AudioEngine::setVolume(float fLevel)
+{
+    HRESULT hr = S_OK;
+	
+	float res = fLevel;
+	if(res < 0.0f) res = 0.0f;
+	if(res > 1.0f) res = 1.0f;
+	hr = pAudioVolume->SetMasterVolume(res, NULL);
+	if(FAILED(hr)) return hr;
+
+	return res;
+}
+
+HRESULT AudioLibrary::AudioEngine::toggleMute()
+{
+    HRESULT hr = S_OK;
+	
+	BOOL mute;
+	hr = pAudioVolume->GetMute(&mute);
+	if(FAILED(hr)) return hr;
+
+	hr = pAudioVolume->SetMute(!mute, NULL);
+	if(FAILED(hr)) return hr;
+
+	return hr;
+}
 
 /* ==========================
    ===    AUDIOSTREAM     ===
@@ -480,8 +523,7 @@ HRESULT AudioLibrary::AudioEngine::stopAudioStream()
 
 AudioLibrary::AudioStream::AudioStream() 
 {
-	captureFormat = NULL;
-	renderFormat = NULL;
+	waveFormat = NULL;
 	data = NULL;
 	dataSize = 0;
 	currentFlags = 0;
@@ -492,84 +534,89 @@ AudioLibrary::AudioStream::~AudioStream()
 	dispose();
 }
 
+// buffer for 1 second for each channel
 HRESULT AudioLibrary::AudioStream::initialize(int bufferSize)
 {
+	// 2 buffers, one for storing and one for loading (keeps swicthing)
 	dataSize = bufferSize;
-	data = (BYTE*) realloc(data, sizeof(BYTE)*dataSize);
+	lastStored = -1;
+	if(data) {
+		free(data[0]);
+		free(data[1]);
+	} else {
+		data = (BYTE**) realloc(data, sizeof(BYTE*)*2);
+	}		
+	data[0] = (BYTE*) malloc(sizeof(BYTE)*dataSize);
+	data[1] = (BYTE*) malloc(sizeof(BYTE)*dataSize);
 	return S_OK;
 }
 
-HRESULT AudioLibrary::AudioStream::setCaptureFormat(WAVEFORMATEX *captureFormat_)
+HRESULT AudioLibrary::AudioStream::setWaveFormat(WAVEFORMATEX *waveFormat_)
 {
-	if(captureFormat) {
-        CoTaskMemFree(captureFormat);
-        captureFormat = NULL;
+	if(waveFormat) {
+        CoTaskMemFree(waveFormat);
+        waveFormat = NULL;
 	}
-	captureFormat = (WAVEFORMATEX*) CoTaskMemAlloc(sizeof(WAVEFORMATEX) + captureFormat_->cbSize);
-	memcpy(captureFormat, captureFormat_, sizeof(WAVEFORMATEX) + captureFormat_->cbSize);
+	waveFormat = (WAVEFORMATEX*) CoTaskMemAlloc(sizeof(WAVEFORMATEX) + waveFormat_->cbSize);
+	memcpy(waveFormat, waveFormat_, sizeof(WAVEFORMATEX) + waveFormat_->cbSize);
 	return S_OK;
 }
 
-HRESULT AudioLibrary::AudioStream::setRenderFormat(WAVEFORMATEX *renderFormat_)
+HRESULT AudioLibrary::AudioStream::storeNullData(UINT32 numBytesAvailable)
 {
-	if(renderFormat) {
-        CoTaskMemFree(renderFormat);
-        captureFormat = NULL;
-	}
-	renderFormat = (WAVEFORMATEX*) CoTaskMemAlloc(sizeof(WAVEFORMATEX) + renderFormat_->cbSize);
-	memcpy(renderFormat, renderFormat_, sizeof(WAVEFORMATEX) + renderFormat_->cbSize);
-	return S_OK;
-}
-
-HRESULT AudioLibrary::AudioStream::storeNullData(UINT32 numFramesAvailable)
-{
-    captureWriter->writeData(data, numFramesAvailable);
-	if(numFramesAvailable > dataSize)
+	if(numBytesAvailable > dataSize)
 		return E_INVALIDARG;
-	SecureZeroMemory(data, numFramesAvailable);
-	bufferedSize = numFramesAvailable;
+	
+	// store zeros in buffer
+	lastStored = (lastStored + 1) % 2;
+	SecureZeroMemory(data[lastStored], numBytesAvailable);
+
 	return S_OK;
 }
 
-HRESULT AudioLibrary::AudioStream::storeData(const BYTE *pData, UINT32 numFramesAvailable)
+HRESULT AudioLibrary::AudioStream::storeData(const BYTE *pData, UINT32 numBytesAvailable)
 {
-    captureWriter->writeData(pData, numFramesAvailable);
-	if(numFramesAvailable > dataSize)
+	if(numBytesAvailable > dataSize)
 		return E_INVALIDARG;
-	if(bufferedSize > 0)
-		return AUDCLNT_E_BUFFER_ERROR;
+	
 	// store from pData
-	memcpy(data, pData, numFramesAvailable);
-	bufferedSize = numFramesAvailable;
+	lastStored = (lastStored + 1) % 2;
+	memcpy(data[lastStored], pData, numBytesAvailable); 
+
+    captureWriter->writeData(data[lastStored], numBytesAvailable);
 	return S_OK;
 }
 
-HRESULT AudioLibrary::AudioStream::loadData(BYTE *pData, UINT32 numFramesAvailable, DWORD *flags)
+HRESULT AudioLibrary::AudioStream::loadData(BYTE *pData, UINT32 numBytesAvailable, DWORD *flags)
 {
-	if(numFramesAvailable > dataSize)
+	if(numBytesAvailable > dataSize)
 		return E_INVALIDARG;
-	// load to pData
-	memcpy(pData, data, numFramesAvailable);
-	bufferedSize -= numFramesAvailable;
-    renderWriter->writeData(pData, numFramesAvailable);
 
+	// load to pData
+	memcpy(pData, data[lastStored], numBytesAvailable); 
+	
 	// set flags
-	if(numFramesAvailable == 0) currentFlags |= AUDCLNT_BUFFERFLAGS_SILENT;
+	if(numBytesAvailable == 0) currentFlags |= AUDCLNT_BUFFERFLAGS_SILENT;
 	(*flags) |= currentFlags;
+
+    renderWriter->writeData(pData, numBytesAvailable);
 	return S_OK;
 
 }
 
-UINT32 AudioLibrary::AudioStream::getBufferedSize()
+UINT32 AudioLibrary::AudioStream::getAvailableData() 
 {
-	return bufferedSize;
+	if (lastStored > -1)
+		return dataSize;
+	else 
+		return 0;
 }
 
 void AudioLibrary::AudioStream::openWriter()
 {
-	captureWriter = gcnew WaveFileWriter("capture.wav", captureFormat);
+	captureWriter = gcnew WaveFileWriter("capture.wav", waveFormat);
 	captureWriter->open();
-	renderWriter = gcnew WaveFileWriter("render.wav", captureFormat);
+	renderWriter = gcnew WaveFileWriter("render.wav", waveFormat);
 	renderWriter->open();
 }
 
@@ -585,15 +632,10 @@ void AudioLibrary::AudioStream::dispose()
 		free(data);
 		data = NULL;
 	}
-	if (captureFormat)
+	if (waveFormat)
     {
-        CoTaskMemFree(captureFormat);
-        captureFormat = NULL;
-    }
-	if (renderFormat)
-    {
-        CoTaskMemFree(renderFormat);
-        renderFormat = NULL;
+        CoTaskMemFree(waveFormat);
+        waveFormat = NULL;
     }
 }
 
@@ -672,6 +714,11 @@ bool AudioLibrary::AudioEngine::Failed(HRESULT hres)
 }
 
 String ^AudioLibrary::AudioEngine::getErrorCode(HRESULT hres)
+{
+	return gcnew String(getErrorCodeString(hres).c_str());
+}
+
+std::string AudioLibrary::AudioEngine::getErrorCodeString(HRESULT hres)
 {
 	switch(hres)
 	{

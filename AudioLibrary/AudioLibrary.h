@@ -25,6 +25,7 @@ namespace AudioLibrary {
 	const IID IID_IAudioClient = __uuidof(IAudioClient);
 	const IID IID_IAudioCaptureClient = __uuidof(IAudioCaptureClient);
 	const IID IID_IAudioRenderClient = __uuidof(IAudioRenderClient);
+	const IID IID_ISimpleAudioVolume = __uuidof(ISimpleAudioVolume);
 	const BYTE WaveHeader[] = { 'R',   'I',   'F',   'F',  0x00,  0x00,  0x00,  0x00, 'W',   'A',   'V',   'E',   'f',   'm',   't',   ' ', 0x00, 0x00, 0x00, 0x00 };
 	const BYTE WaveData[] = { 'd', 'a', 't', 'a'};
 
@@ -60,24 +61,22 @@ namespace AudioLibrary {
 		void closeWriter();
 		HRESULT initialize(int bufferSize);
 		void dispose();
-		UINT32 getBufferedSize();
-		HRESULT setCaptureFormat(WAVEFORMATEX *captureFormat_);
-		HRESULT setRenderFormat(WAVEFORMATEX *renderFormat_);
-		HRESULT storeNullData(UINT32 numFramesAvailable);
-		HRESULT storeData(const BYTE *pData, UINT32 numFramesAvailable);
-		HRESULT loadData(BYTE *pData, UINT32 numFramesAvailable, DWORD *flags);
+		UINT32 getAvailableData();
+		HRESULT setWaveFormat(WAVEFORMATEX *captureFormat_);
+		HRESULT storeNullData(UINT32 numBytesAvailable);
+		HRESULT storeData(const BYTE *pData, UINT32 numBytesAvailable);
+		HRESULT loadData(BYTE *pData, UINT32 numBytesAvailable, DWORD *flags);
 		// flags is 0 if at least one frame of real data is available else its AUDCLNT_BUFFERFLAGS_SILENT
 	private:
-		WAVEFORMATEX *renderFormat;
-		WAVEFORMATEX *captureFormat;
-		BYTE *data;
+		WAVEFORMATEX *waveFormat;
+		BYTE **data;
 		UINT32 dataSize;
-		UINT32 bufferedSize;
+		INT32 lastStored;
 		DWORD currentFlags;
 		WaveFileWriter ^renderWriter;
 		WaveFileWriter ^captureWriter;
+		EffectsCollection effects;
 	};
-
 
 	// Class
 	public ref class AudioEngine
@@ -91,14 +90,18 @@ namespace AudioLibrary {
 		HRESULT setCaptureDevice(UINT num);
 		HRESULT setDefaultRenderDevice();
 		HRESULT setDefaultCaptureDevice();
-		HRESULT initializeCaptureDevice();
-		HRESULT initializeRenderDevice();
+		HRESULT initializeDevices();
 		HRESULT startAudioStream();
 		HRESULT stopAudioStream();
+		HRESULT volumeDown(float fLevel);
+		HRESULT volumeUp(float fLevel);
+		HRESULT setVolume(float fLevel);
+		HRESULT toggleMute();
 		void dispose();
 		static String ^getErrorCode(HRESULT hres);
 		static bool Failed(HRESULT hres);
 	private:
+		static std::string getErrorCodeString(HRESULT hres);
 		void initialize(UINT32 _EngineLatencyInMS);
 		HRESULT makeRenderDeviceList();
 		HRESULT makeCaptureDeviceList();
@@ -110,18 +113,17 @@ namespace AudioLibrary {
 		IAudioCaptureClient *pCaptureClient;
 		IAudioClient *pRenderAudioClient;
 		IAudioRenderClient *pRenderClient;
+		ISimpleAudioVolume *pAudioVolume;
 		IMMDeviceCollection *pRenderDevices;
 		IMMDeviceCollection *pCaptureDevices;
 		IMMDevice *pRenderDevice;
 		IMMDevice *pCaptureDevice;
 		IMMDeviceEnumerator *pEnumerator;
-		REFERENCE_TIME renderActualDuration;
 		UINT32 renderBufferFrameCount;
 		UINT32 captureBufferFrameCount;
 		size_t frameSize;
 		LONG engineLatency;
 		BOOL audioStreamStatus;
-		EffectsCollection effects;
 
 		// Handles
 		HANDLE renderShutdownEvent;

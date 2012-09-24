@@ -19,11 +19,9 @@ namespace TestAudioLibrary
             return val;
         }
 
-        static void waitForStopCapturing()
+        static ConsoleKeyInfo getNetKeyEvent()
         {
-            ConsoleKeyInfo c = Console.ReadKey(true);
-            while(c.Key != ConsoleKey.Q)
-                c = Console.ReadKey(true);
+            return Console.ReadKey(true);
         }
 
         static void waitforEnter()
@@ -35,7 +33,7 @@ namespace TestAudioLibrary
 
         static void Main(string[] args)
         {
-            AudioEngine ae = new AudioEngine(100);
+            AudioEngine ae = new AudioEngine(5);
             int result = ae.engineStatus();
             if (AudioEngine.Failed(result))
             {
@@ -49,27 +47,27 @@ namespace TestAudioLibrary
             for (int i = 0; i < renderDevices.Length; i++)
                 Console.WriteLine(i + ": " + renderDevices[i]);
             result = ae.setDefaultRenderDevice();
+            //result = ae.setRenderDevice(1);
             if (AudioEngine.Failed(result))
             {
                 Console.WriteLine("Error setting render device: " + AudioEngine.getErrorCode(result));
                 waitforEnter();
                 return;
             }
-            ae.initializeRenderDevice();
-
 
             Console.WriteLine("Select Capture Device: ");
             String[] captureDevices = ae.getCaptureDevices();
             for (int i = 0; i < captureDevices.Length; i++)
                 Console.WriteLine(i + ": " + captureDevices[i]);
             result = ae.setDefaultCaptureDevice();
+            //result = ae.setCaptureDevice(0);
             if (AudioEngine.Failed(result))
             {
                 Console.WriteLine("Error setting capture device: " + AudioEngine.getErrorCode(result));
                 waitforEnter();
                 return;
             }
-            ae.initializeCaptureDevice();
+            ae.initializeDevices();
 
 
             result = ae.startAudioStream();
@@ -82,7 +80,26 @@ namespace TestAudioLibrary
 
 
             Console.WriteLine("press Q to stop capturing");
-            waitForStopCapturing();
+            Console.WriteLine("press M to toggle mute");
+            Console.WriteLine("press U to turn volume up");
+            Console.WriteLine("press D to turn volume down");
+            ConsoleKeyInfo c = getNetKeyEvent();
+            while( c.Key != ConsoleKey.Q)
+            {
+                switch(c.Key)
+                {
+                    case(ConsoleKey.M):
+                        ae.toggleMute();
+                        break;
+                    case (ConsoleKey.U):
+                        ae.volumeUp(0.1f);
+                        break;
+                    case (ConsoleKey.D):
+                        ae.volumeDown(0.1f);
+                        break;
+                }
+                c = getNetKeyEvent();
+            }
             result = ae.stopAudioStream();
             if (result < 0)
             {

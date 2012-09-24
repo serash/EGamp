@@ -12,7 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using EGamp.Engine.Effects;
+using EffectsLibrary;
 
 namespace EGamp.Visualization
 {
@@ -21,22 +21,22 @@ namespace EGamp.Visualization
     /// </summary>
     public partial class EffectVisualization : UserControl
     {
-        private Effect effect;
+        private IEffect effect;
 
-        public Effect ThisEffect {
+        public IEffect ThisEffect {
             get { return effect; }
             set
             {
                 effect = value;
-                NameLabel.Content = effect.Name;
-                foreach (CustomSlider slider in effect.Sliders)
-                {
-                    Sliders.Children.Add(slider);
-                }
+                NameLabel.Content = effect.getName();
+                //foreach (CustomSlider slider in effect.Sliders)
+                //{
+                //    Sliders.Children.Add(slider);
+                //}
             }
         }
 
-        public EffectVisualization(Effect _effect)
+        public EffectVisualization(IEffect _effect)
         {
             InitializeComponent();
             this.ThisEffect = _effect;

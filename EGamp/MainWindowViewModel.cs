@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
@@ -7,11 +8,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows.Input;
-using EGamp.Engine;
-using EGamp.Engine.Effects;
 using EGamp.Visualization;
-using NAudio.CoreAudioApi;
-using NAudio.Wave;
+using EffectsLibrary;
 using AudioLibrary;
 
 namespace EGamp
@@ -19,114 +17,151 @@ namespace EGamp
     class MainWindowViewModel : INotifyPropertyChanged
     {
         private int volume;
-        private IAudioEngine engine;
-        private SpectrumAnalyzerVisualization spectrumAnalyzerVisualization;
-        private PolylineWaveFormVisualization polylineWaveFormVisualization;
+        private AudioEngine engine;
         private EffectCollection effectWindow;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public ICommand PlayCommand { get; private set; }
+        public ICommand StartCommand { get; private set; }
+        public ICommand MuteCommand { get; private set; }
         public ICommand AddEffectCommand { get; private set; }
 
         private IEnumerable<Type> effectsList;
         private Type selectedEffect;
 
+        private List<String> captureDevices;
+        private List<String> renderDevices;
+        private String captureDevice;
+        private String renderDevice;
+
         public MainWindowViewModel()
         {
             Configuration.LoadConfiguration();
             Logger.Initialize();
-            engine = new AudioEngine();
-            //engine = new FileAudioEngine();
-            //((FileAudioEngine)engine).Initialize("C:\\TheCatalyst.mp3");
-            engine.Initialize();
-            engine.MaximumCalculated += new EventHandler<MaxSampleEventArgs>(audioGraph_MaximumCalculated);
-            engine.EffectAdded += new EventHandler<AddEffectEventArgs>(effectWindow_AddEffect);
-            engine.FftCalculated += new EventHandler<FftEventArgs>(audioGraph_FftCalculated);
+            engine = new AudioEngine(5);
+            int result = engine.engineStatus();
+            if (AudioEngine.Failed(result))
+                Logger.Log("Error initializing AudioEngine: " + AudioEngine.getErrorCode(result));
 
-            spectrumAnalyzerVisualization = new SpectrumAnalyzerVisualization();
-            polylineWaveFormVisualization = new PolylineWaveFormVisualization();
+            renderDevices = engine.getRenderDevices().ToList();
+            renderDevices.Add("Default Render Device");
+
+            result = engine.setDefaultRenderDevice();
+            if (AudioEngine.Failed(result))
+                Logger.Log("Error setting render device: " + AudioEngine.getErrorCode(result));
+
+            captureDevices = engine.getCaptureDevices().ToList();
+            captureDevices.Add("Default Capture Device");
+
+            result = engine.setDefaultCaptureDevice();
+            if (AudioEngine.Failed(result))
+                Logger.Log("Error setting capture device: " + AudioEngine.getErrorCode(result));
+
+            result = engine.initializeDevices();
+            if (AudioEngine.Failed(result))
+                Logger.Log("Error Initializing devices: " + AudioEngine.getErrorCode(result));
+
+            captureDevice = captureDevices.Last();
+            renderDevice = renderDevices.Last();
+
             effectWindow = new EffectCollection();
 
             this.volume = 100;
 
-            PlayCommand = new RelayCommand(
-                        () => this.Play(),
+            StartCommand = new RelayCommand(
+                        () => this.Start(),
+                        () => true);
+            MuteCommand = new RelayCommand(
+                        () => this.Mute(),
                         () => true);
             AddEffectCommand = new RelayCommand(
                         () => this.AddEffect(),
                         () => true);
-            effectsList = GetEnumerableOfType<Effect>();
-            SelectedEffect = effectsList.First();
+
         }
 
-        public IEnumerable<Type> Effects
+        public string CaptureDevice
         {
-            get { return effectsList; }
-        }
-
-        public Type SelectedEffect
-        {
-            get { return selectedEffect; }
+            get { return captureDevice; }
             set
             {
-                if (selectedEffect != null && selectedEffect.Equals(value)) return;
-                selectedEffect = value;
-                RaisePropertyChanged("SelectedEffect");
+                if (captureDevice != value)
+                {
+                    captureDevice = value;
+                    uint idx = (uint)captureDevices.IndexOf(captureDevice);
+                    int result;
+                    if (idx == captureDevices.Count - 1)
+                        result = engine.setDefaultCaptureDevice();
+                    else
+                        result = engine.setCaptureDevice(idx);
+                    if (AudioEngine.Failed(result))
+                        Logger.Log("Error setting capture device: " + AudioEngine.getErrorCode(result));
+
+                    result = engine.initializeDevices();
+                    if (AudioEngine.Failed(result))
+                        Logger.Log("Error Initializing devices: " + AudioEngine.getErrorCode(result));
+                    RaisePropertyChanged("CaptureDevice");
+                }
             }
         }
 
-        public IEnumerable<Type> GetEnumerableOfType<T>() where T : class
+        public string RenderDevice
         {
-            List<Type> objects = new List<Type>();
-            foreach (Type type in Assembly.GetAssembly(typeof(T)).GetTypes().Where(myType => myType.IsClass && !myType.IsAbstract && myType.IsSubclassOf(typeof(T))))
+            get { return renderDevice; }
+            set
             {
-                objects.Add(type);
+                if (renderDevice != value)
+                {
+                    renderDevice = value;
+                    uint idx = (uint)renderDevices.IndexOf(renderDevice);
+                    int result;
+                    if (idx == renderDevices.Count - 1)
+                        result = engine.setDefaultRenderDevice();
+                    else
+                        result = engine.setRenderDevice(idx);
+                    if (AudioEngine.Failed(result))
+                        Logger.Log("Error setting render device: " + AudioEngine.getErrorCode(result));
+
+                    result = engine.initializeDevices();
+                    if (AudioEngine.Failed(result))
+                        Logger.Log("Error Initializing devices: " + AudioEngine.getErrorCode(result));
+                    RaisePropertyChanged("RenderDevice");
+                }
             }
-            return objects;
         }
 
-        public object InputVisualization
+        public object CaptureDevices
         {
-            get
-            {
-                return this.spectrumAnalyzerVisualization.Content;
-            }
+            get { return this.captureDevices; }
         }
 
-        public object OutputVisualization
+        public object RenderDevices
         {
-            get
-            {
-                return this.polylineWaveFormVisualization.Content;
-            }
+            get { return this.renderDevices; }
         }
 
         public object EffectsWindow
         {
-            get
-            {
-                return this.effectWindow.Content;
-            }
+            get { return this.effectWindow.Content; }
         }
 
-        private void Play()
+        private void Start()
         {
-            if (engine.IsPlaying())
-                engine.Stop();
-            else
-                engine.Play();
+            int result = engine.startAudioStream();
+            if (AudioEngine.Failed(result))
+                Logger.Log("Error starting stream: " + AudioEngine.getErrorCode(result));
+        }
+        
+        private void Mute()
+        {
+            int result = engine.toggleMute();
+            if (AudioEngine.Failed(result))
+                Logger.Log("Error toggling mute: " + AudioEngine.getErrorCode(result));
         }
 
         private void AddEffect()
         {
-            Effect effect = (Effect)Activator.CreateInstance(selectedEffect);
-            engine.AddEffect(effect);
-        }
-
-        private void effectWindow_AddEffect(object sender, AddEffectEventArgs e)
-        {
-            this.effectWindow.AddEffect(e.NewEffect);
+            Logger.Log("AddEffect not yet implemented.");
         }
 
         public int Volume
@@ -142,28 +177,18 @@ namespace EGamp
                     this.volume = value;
                     if (this.engine != null)
                     {
-                        this.engine.SetVolume((float)value/100);
+                        this.engine.setVolume((float)value/100);
                     }
                     RaisePropertyChanged("Volume");
                 }
             }
         }
 
-        void audioGraph_FftCalculated(object sender, FftEventArgs e)
-        {
-            spectrumAnalyzerVisualization.OnFftCalculated(e.Result);
-        }
-
-        void audioGraph_MaximumCalculated(object sender, MaxSampleEventArgs e)
-        {
-            polylineWaveFormVisualization.OnMaxCalculated(e.MinSample, e.MaxSample);
-        }
-
         public void Dispose()
         {
             Configuration.SaveConfiguration();
             Logger.Close();
-            engine.Close();
+            engine.dispose();
         }
 
         private void RaisePropertyChanged(string propertyName)
