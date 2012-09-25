@@ -5,6 +5,8 @@
 #include <winerror.h>
 #include <Windows.h>
 #include <vector>
+#include <iostream>
+#include <fstream>
 #using <mscorlib.dll>
 #include "EffectsLibrary.h"
 
@@ -38,7 +40,7 @@ namespace AudioLibrary {
 		DWORD   dwFmt;                      // "fmt "
 		DWORD   dwFmtSize;                  // Wave Format Size
 	};
-	private ref class WaveFileWriter
+	private class WaveFileWriter
 	{
 	public:
 		WaveFileWriter(const char *filename_, WAVEFORMATEX *waveFormat_);
@@ -46,51 +48,61 @@ namespace AudioLibrary {
 		bool writeData(const BYTE* data, UINT32 dataSize);
 		void close();
 	private:
-		String ^filename;
-		FileStream^ fs;
-		BinaryWriter^ w;
+		std::string filename;
+		std::ofstream myfile;
 		WAVEFORMATEX *waveFormat;
 		DWORD waveFileSize;
 		DWORD headerSize;
 	};
-	private ref class AudioStream {
+	private class AudioStream {
 	public:
 		AudioStream();
 		~AudioStream();
 		void openWriter();
 		void closeWriter();
-		HRESULT initialize(int bufferSize);
+		HRESULT initialize(UINT32 numCaptureFrames_, UINT32 numRenderFrames_);
 		void dispose();
-		UINT32 getAvailableData();
-		HRESULT setWaveFormat(WAVEFORMATEX *captureFormat_);
-		HRESULT storeNullData(UINT32 numBytesAvailable);
-		HRESULT storeData(const BYTE *pData, UINT32 numBytesAvailable);
-		HRESULT loadData(BYTE *pData, UINT32 numBytesAvailable, DWORD *flags);
-		// flags is 0 if at least one frame of real data is available else its AUDCLNT_BUFFERFLAGS_SILENT
+		UINT32 getAvailableFrames();
+		HRESULT setRenderFormat(WAVEFORMATEX *renderFormat_);
+		HRESULT setCaptureFormat(WAVEFORMATEX *captureFormat_);
+		WAVEFORMATEX *getRenderFormat();
+		WAVEFORMATEX *getCaptureFormat();
+		HRESULT storeNullData(UINT32 numFramesAvailable);
+		HRESULT storeData(const BYTE *pData, UINT32 numFramesAvailable);
+		HRESULT loadData(BYTE *pData, UINT32 numFramesAvailable, DWORD *flags);
+		static DWORD __stdcall dataConversionFunction(LPVOID Context);
 	private:
-		WAVEFORMATEX *waveFormat;
-		BYTE **data;
-		UINT32 dataSize;
-		INT32 lastStored;
+		template <class SAMPLETYPE> HRESULT resample();
+		DWORD LeastCommonMultiple(DWORD rate1, DWORD rate2); 
+		DWORD GreatestCommonDivisor(DWORD rate1, DWORD rate2);
+		WAVEFORMATEX *renderFormat;
+		WAVEFORMATEX *captureFormat;
+		DWORD renderSamplePos;
+		DWORD captureSamplePos;
+		BYTE *capturedData;
+		BYTE *renderData;
+		UINT32 numCaptureFrames;
+		UINT32 numAvailableFrames;
+		UINT32 numRenderFrames;
+		INT32 dataIsReady;
 		DWORD currentFlags;
-		WaveFileWriter ^renderWriter;
-		WaveFileWriter ^captureWriter;
-		EffectsCollection effects;
-	};
+		DWORD convertWaveFormat();
 
-	// Class
-	public ref class AudioEngine
+		WaveFileWriter *renderWriter;
+		WaveFileWriter *captureWriter;
+		//EffectsCollection effects;
+	};
+	private class InnerAudioEngine : public IAudioSessionEvents, IMMNotificationClient
 	{
 	public:
-		AudioEngine(UINT32 _EngineLatencyInMS);
-		HRESULT engineStatus();
-		array<String^> ^getRenderDevices();
-		array<String^> ^getCaptureDevices();
+		// Public Functions
+		InnerAudioEngine(UINT32 _EngineLatencyInMS, bool enableStreamSwitch_);
+		array<String^> ^makeRenderDeviceList();
+		array<String^> ^makeCaptureDeviceList();
 		HRESULT setRenderDevice(UINT num);
 		HRESULT setCaptureDevice(UINT num);
 		HRESULT setDefaultRenderDevice();
 		HRESULT setDefaultCaptureDevice();
-		HRESULT initializeDevices();
 		HRESULT startAudioStream();
 		HRESULT stopAudioStream();
 		HRESULT volumeDown(float fLevel);
@@ -98,17 +110,24 @@ namespace AudioLibrary {
 		HRESULT setVolume(float fLevel);
 		HRESULT toggleMute();
 		void dispose();
-		static String ^getErrorCode(HRESULT hres);
-		static bool Failed(HRESULT hres);
+		HRESULT initialize();
+		
+		// Interface related
+		STDMETHOD_(ULONG, AddRef)();
+		STDMETHOD_(ULONG, Release)();
+		HRESULT handleStreamSwitchEvent();
 	private:
-		static std::string getErrorCodeString(HRESULT hres);
-		void initialize(UINT32 _EngineLatencyInMS);
-		HRESULT makeRenderDeviceList();
-		HRESULT makeCaptureDeviceList();
-		void captureAudioStream();
-		void renderAudioStream();
+		// Private Functions
+		HRESULT initializeDevices();
+		HRESULT setWaveFormats();
+		HRESULT initializeStreamSwitch();
+		HRESULT terminateStreamSwitch();
+		static DWORD __stdcall captureThreadFunction(LPVOID Context);
+		static DWORD __stdcall renderThreadFunction(LPVOID Context);
+		DWORD captureAudioStream();
+		DWORD renderAudioStream();
 
-		HRESULT initializeResult;
+		// Properties
 		IAudioClient *pCaptureAudioClient;
 		IAudioCaptureClient *pCaptureClient;
 		IAudioClient *pRenderAudioClient;
@@ -119,22 +138,68 @@ namespace AudioLibrary {
 		IMMDevice *pRenderDevice;
 		IMMDevice *pCaptureDevice;
 		IMMDeviceEnumerator *pEnumerator;
+		IAudioSessionControl *pAudioSessionControl;
+		AudioStream *pAudioStream;
 		UINT32 renderBufferFrameCount;
 		UINT32 captureBufferFrameCount;
-		size_t frameSize;
 		LONG engineLatency;
-		BOOL audioStreamStatus;
+		bool enableStreamSwitch;
+		bool audioStreamStatus;
+		bool inStreamSwitch;
 
 		// Handles
+		HANDLE captureThread;
+		HANDLE renderThread;
 		HANDLE renderShutdownEvent;
 		HANDLE captureShutdownEvent;
 		HANDLE renderSamplesReadyEvent;
 		HANDLE captureSamplesReadyEvent;
+		HANDLE streamSwitchEvent;          // Set when the current session is disconnected or the default device changes.
+		HANDLE streamSwitchCompleteEvent;  // Set when the default device changed.
+
+		// Interface related
+		LONG _RefCount;
+		STDMETHOD(OnDisplayNameChanged) (LPCWSTR /*NewDisplayName*/, LPCGUID /*EventContext*/) { return S_OK; };
+		STDMETHOD(OnIconPathChanged) (LPCWSTR /*NewIconPath*/, LPCGUID /*EventContext*/) { return S_OK; };
+		STDMETHOD(OnSimpleVolumeChanged) (float /*NewSimpleVolume*/, BOOL /*NewMute*/, LPCGUID /*EventContext*/) { return S_OK; }
+		STDMETHOD(OnChannelVolumeChanged) (DWORD /*ChannelCount*/, float /*NewChannelVolumes*/[], DWORD /*ChangedChannel*/, LPCGUID /*EventContext*/) { return S_OK; };
+		STDMETHOD(OnGroupingParamChanged) (LPCGUID /*NewGroupingParam*/, LPCGUID /*EventContext*/) {return S_OK; };
+		STDMETHOD(OnStateChanged) (AudioSessionState /*NewState*/) { return S_OK; };
+		STDMETHOD(OnSessionDisconnected) (AudioSessionDisconnectReason DisconnectReason);
+		STDMETHOD(OnDeviceStateChanged) (LPCWSTR /*DeviceId*/, DWORD /*NewState*/) { return S_OK; }
+		STDMETHOD(OnDeviceAdded) (LPCWSTR /*DeviceId*/) { return S_OK; };
+		STDMETHOD(OnDeviceRemoved) (LPCWSTR /*DeviceId(*/) { return S_OK; };
+		STDMETHOD(OnDefaultDeviceChanged) (EDataFlow Flow, ERole Role, LPCWSTR NewDefaultDeviceId);
+		STDMETHOD(OnPropertyValueChanged) (LPCWSTR /*DeviceId*/, const PROPERTYKEY /*Key*/){return S_OK; };
+		STDMETHOD(QueryInterface)(REFIID iid, void **pvObject);
+	};
+
+	// Wrapper class needed for managed c++
+	public ref class AudioEngine
+	{
+	public:
+		AudioEngine(UINT32 _EngineLatencyInMS, bool enableStreamSwitch_);
+		array<String^> ^getRenderDevices();
+		array<String^> ^getCaptureDevices();
+		HRESULT setRenderDevice(UINT num);
+		HRESULT setCaptureDevice(UINT num);
+		HRESULT setDefaultRenderDevice();
+		HRESULT setDefaultCaptureDevice();
+		HRESULT startAudioStream();
+		HRESULT stopAudioStream();
+		HRESULT volumeDown(float fLevel);
+		HRESULT volumeUp(float fLevel);
+		HRESULT setVolume(float fLevel);
+		HRESULT toggleMute();
+		void dispose();
+		HRESULT initialize();
+		static String ^getErrorCode(HRESULT hres);
+		static bool Failed(HRESULT hres);
+	private:
+		static std::string getErrorCodeString(HRESULT hres);
+		InnerAudioEngine *innerEngine;
 
 		// CLI properties
-		Thread ^renderThread;
-		Thread ^captureThread;
-		AudioStream ^audioStream;
 		array<String^> ^renderDevicesList;
 		array<String^> ^captureDevicesList;
 	};

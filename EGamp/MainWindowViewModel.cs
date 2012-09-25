@@ -38,28 +38,14 @@ namespace EGamp
         {
             Configuration.LoadConfiguration();
             Logger.Initialize();
-            engine = new AudioEngine(5);
-            int result = engine.engineStatus();
+            engine = new AudioEngine(5, false);
+            int result = engine.initialize();
             if (AudioEngine.Failed(result))
                 Logger.Log("Error initializing AudioEngine: " + AudioEngine.getErrorCode(result));
-
             renderDevices = engine.getRenderDevices().ToList();
             renderDevices.Add("Default Render Device");
-
-            result = engine.setDefaultRenderDevice();
-            if (AudioEngine.Failed(result))
-                Logger.Log("Error setting render device: " + AudioEngine.getErrorCode(result));
-
             captureDevices = engine.getCaptureDevices().ToList();
             captureDevices.Add("Default Capture Device");
-
-            result = engine.setDefaultCaptureDevice();
-            if (AudioEngine.Failed(result))
-                Logger.Log("Error setting capture device: " + AudioEngine.getErrorCode(result));
-
-            result = engine.initializeDevices();
-            if (AudioEngine.Failed(result))
-                Logger.Log("Error Initializing devices: " + AudioEngine.getErrorCode(result));
 
             captureDevice = captureDevices.Last();
             renderDevice = renderDevices.Last();
@@ -88,19 +74,19 @@ namespace EGamp
                 if (captureDevice != value)
                 {
                     captureDevice = value;
-                    uint idx = (uint)captureDevices.IndexOf(captureDevice);
-                    int result;
-                    if (idx == captureDevices.Count - 1)
-                        result = engine.setDefaultCaptureDevice();
-                    else
-                        result = engine.setCaptureDevice(idx);
-                    if (AudioEngine.Failed(result))
-                        Logger.Log("Error setting capture device: " + AudioEngine.getErrorCode(result));
+                    //uint idx = (uint)captureDevices.IndexOf(captureDevice);
+                    //int result;
+                    //if (idx == captureDevices.Count - 1)
+                    //    result = engine.setDefaultCaptureDevice();
+                    //else
+                    //    result = engine.setCaptureDevice(idx);
+                    //if (AudioEngine.Failed(result))
+                    //    Logger.Log("Error setting capture device: " + AudioEngine.getErrorCode(result));
 
-                    result = engine.initializeDevices();
-                    if (AudioEngine.Failed(result))
-                        Logger.Log("Error Initializing devices: " + AudioEngine.getErrorCode(result));
-                    RaisePropertyChanged("CaptureDevice");
+                    //result = engine.initializeDevices();
+                    //if (AudioEngine.Failed(result))
+                    //    Logger.Log("Error Initializing devices: " + AudioEngine.getErrorCode(result));
+                    //RaisePropertyChanged("CaptureDevice");
                 }
             }
         }
@@ -113,19 +99,19 @@ namespace EGamp
                 if (renderDevice != value)
                 {
                     renderDevice = value;
-                    uint idx = (uint)renderDevices.IndexOf(renderDevice);
-                    int result;
-                    if (idx == renderDevices.Count - 1)
-                        result = engine.setDefaultRenderDevice();
-                    else
-                        result = engine.setRenderDevice(idx);
-                    if (AudioEngine.Failed(result))
-                        Logger.Log("Error setting render device: " + AudioEngine.getErrorCode(result));
+                    //uint idx = (uint)renderDevices.IndexOf(renderDevice);
+                    //int result;
+                    //if (idx == renderDevices.Count - 1)
+                    //    result = engine.setDefaultRenderDevice();
+                    //else
+                    //    result = engine.setRenderDevice(idx);
+                    //if (AudioEngine.Failed(result))
+                    //    Logger.Log("Error setting render device: " + AudioEngine.getErrorCode(result));
 
-                    result = engine.initializeDevices();
-                    if (AudioEngine.Failed(result))
-                        Logger.Log("Error Initializing devices: " + AudioEngine.getErrorCode(result));
-                    RaisePropertyChanged("RenderDevice");
+                    //result = engine.initializeDevices();
+                    //if (AudioEngine.Failed(result))
+                    //    Logger.Log("Error Initializing devices: " + AudioEngine.getErrorCode(result));
+                    //RaisePropertyChanged("RenderDevice");
                 }
             }
         }

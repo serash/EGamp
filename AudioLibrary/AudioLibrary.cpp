@@ -9,110 +9,25 @@
    ===   IMPLEMENTATION   ===
    ========================== */
 
-AudioLibrary::AudioEngine::AudioEngine(UINT32 _EngineLatencyInMS) 
+AudioLibrary::AudioEngine::AudioEngine(UINT32 engineLatency_, bool enableStreamSwitch_)
 {
-	pCaptureAudioClient = NULL;
-	pCaptureClient = NULL;
-	pRenderAudioClient = NULL;
-	pRenderClient = NULL;
-	pCaptureClient = NULL;
-	pRenderDevices = NULL;
-	pCaptureDevices = NULL;
-	pRenderDevice = NULL;
-	pCaptureDevice = NULL;
-	captureShutdownEvent = NULL;
-	renderShutdownEvent = NULL;
-	captureSamplesReadyEvent = NULL;
-	renderSamplesReadyEvent = NULL;
-	audioStream = gcnew AudioStream();
-	initialize(_EngineLatencyInMS);
+	innerEngine = new InnerAudioEngine(engineLatency_, enableStreamSwitch_);
 }
 
-void AudioLibrary::AudioEngine::initialize(UINT32 _EngineLatencyInMS) 
+HRESULT AudioLibrary::AudioEngine::initialize() 
 {
-    initializeResult = S_OK;
-	pin_ptr<IMMDeviceEnumerator *> pinnedEnumeratorPtr = &pEnumerator;
+	HRESULT hr = S_OK;
+	hr = innerEngine->initialize();
+	if(FAILED(hr)) return hr;
+	captureDevicesList = innerEngine->makeCaptureDeviceList();
+	renderDevicesList = innerEngine->makeRenderDeviceList();
 
-    initializeResult = CoCreateInstance(CLSID_MMDeviceEnumerator, NULL, CLSCTX_ALL, IID_IMMDeviceEnumerator, (void**)pinnedEnumeratorPtr);
-	if(FAILED(initializeResult)) return;
-
-	pin_ptr<IMMDeviceCollection *> pinnedRenderPtr = &pRenderDevices;
-	initializeResult = pEnumerator->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, pinnedRenderPtr);
-	if(FAILED(initializeResult)) return;
-	initializeResult = makeRenderDeviceList();
-	if(FAILED(initializeResult)) return;
-	
-	pin_ptr<IMMDeviceCollection *> pinnedCapturePtr = &pCaptureDevices;
-	initializeResult = pEnumerator->EnumAudioEndpoints(eCapture, DEVICE_STATE_ACTIVE, pinnedCapturePtr);
-	if(FAILED(initializeResult)) return;
-	initializeResult = makeCaptureDeviceList();
-	if(FAILED(initializeResult)) return;
-	
-
-	//initialize EventHandle
-    captureShutdownEvent = CreateEventEx(NULL, NULL, 0, EVENT_MODIFY_STATE | SYNCHRONIZE);
-    renderShutdownEvent = CreateEventEx(NULL, NULL, 0, EVENT_MODIFY_STATE | SYNCHRONIZE);
-    captureSamplesReadyEvent = CreateEventEx(NULL, NULL, 0, EVENT_MODIFY_STATE | SYNCHRONIZE);
-    renderSamplesReadyEvent = CreateEventEx(NULL, NULL, 0, EVENT_MODIFY_STATE | SYNCHRONIZE);
-	
-    engineLatency = _EngineLatencyInMS;
+	return hr;
 }
 
 void AudioLibrary::AudioEngine::dispose()
 {
-	if(audioStreamStatus)
-		stopAudioStream();
-	
-	if(captureShutdownEvent) {
-		CloseHandle(captureShutdownEvent);
-		captureShutdownEvent = NULL;
-	}
-	if(renderShutdownEvent) {
-		CloseHandle(renderShutdownEvent);
-		renderShutdownEvent = NULL;
-	}
-	if(renderSamplesReadyEvent) {
-		CloseHandle(renderSamplesReadyEvent);
-		renderSamplesReadyEvent = NULL;
-	}
-	if(captureSamplesReadyEvent) {
-		CloseHandle(captureSamplesReadyEvent);
-		captureSamplesReadyEvent = NULL;
-	}
-
-	audioStream->dispose();
-
-	pin_ptr<IAudioClient *> pinnedCaptureAudioClientPtr = &pCaptureAudioClient;
-    safeRelease(reinterpret_cast<IAudioClient **>(pinnedCaptureAudioClientPtr));
-
-	pin_ptr<IAudioCaptureClient *> pinnedCaptureClientPtr = &pCaptureClient;
-    safeRelease(reinterpret_cast<IAudioCaptureClient **>(pinnedCaptureClientPtr));
-
-	pin_ptr<IAudioClient *> pinnedRenderAudioClientPtr = &pRenderAudioClient;
-    safeRelease(reinterpret_cast<IAudioClient **>(pinnedRenderAudioClientPtr));
-
-	pin_ptr<IAudioRenderClient *> pinnedRenderClientPtr = &pRenderClient;
-    safeRelease(reinterpret_cast<IAudioRenderClient **>(pinnedRenderClientPtr));
-
-	pin_ptr<IMMDeviceCollection *> pinnedRenderDevicesPtr = &pRenderDevices;
-    safeRelease(reinterpret_cast<IMMDeviceCollection **>(pinnedRenderDevicesPtr));
-
-	pin_ptr<IMMDeviceCollection *> pinnedCaptureDevicesPtr = &pCaptureDevices;
-    safeRelease(reinterpret_cast<IMMDeviceCollection **>(pinnedCaptureDevicesPtr));
-
-	pin_ptr<IMMDevice *> pinnedRenderDevicePtr = &pRenderDevice;
-    safeRelease(reinterpret_cast<IMMDevice **>(pinnedRenderDevicePtr));
-
-	pin_ptr<IMMDevice *> pinnedCaptureDevicePtr = &pCaptureDevice;
-    safeRelease(reinterpret_cast<IMMDevice **>(pinnedCaptureDevicePtr));
-
-	pin_ptr<IMMDeviceEnumerator *> pinnedEnumeratorPtr = &pEnumerator;
-    safeRelease(reinterpret_cast<IMMDeviceEnumerator **>(pinnedEnumeratorPtr));
-}
-
-HRESULT AudioLibrary::AudioEngine::engineStatus() 
-{
-	return initializeResult;
+	innerEngine->dispose();
 }
 
 array<String^> ^AudioLibrary::AudioEngine::getRenderDevices() 
@@ -125,396 +40,56 @@ array<String^> ^AudioLibrary::AudioEngine::getCaptureDevices()
 	return captureDevicesList;
 }
 
-HRESULT AudioLibrary::AudioEngine::makeRenderDeviceList()
-{
-    HRESULT hr = S_OK;
-	UINT pcDevices;
-	IMMDevice *ppDevice = NULL;
-	IPropertyStore *pProps = NULL;
-	LPWSTR ppStrId = NULL;
-	UINT i = 0;
-	PROPVARIANT varName;
-
-	hr = pRenderDevices->GetCount(&pcDevices);
-	if(FAILED(hr)) return hr;
-	
-	renderDevicesList = gcnew array<String^>(pcDevices);
-    PropVariantInit(&varName);
-
-	for each(String^% s in renderDevicesList) {
-		hr = pRenderDevices->Item(i, &ppDevice);
-		if(FAILED(hr)) return hr;
-
-		hr = ppDevice->OpenPropertyStore(STGM_READ, &pProps);
-		if(FAILED(hr)) return hr;
-
-        hr = pProps->GetValue(PKEY_Device_FriendlyName, &varName);
-		if(!SUCCEEDED(hr)) return hr;
-
-		std::wstring name (varName.pwszVal);
-		s = gcnew String(name.c_str());
-		i++;
-	}
-
-    safeRelease(&ppDevice);
-	safeRelease(&pProps);
-	CoTaskMemFree(ppStrId);
-	return 0;
-}
-
-HRESULT AudioLibrary::AudioEngine::makeCaptureDeviceList()
-{
-    HRESULT hr = S_OK;
-	UINT pcDevices;
-	IMMDevice *ppDevice = NULL;
-	IPropertyStore *pProps = NULL;
-	LPWSTR ppStrId = NULL;
-	UINT i = 0;
-	PROPVARIANT varName;
-
-	hr = pCaptureDevices->GetCount(&pcDevices);
-	if(FAILED(hr)) return hr;
-	
-	captureDevicesList = gcnew array<String^>(pcDevices);
-    PropVariantInit(&varName);
-
-	for each(String^% s in captureDevicesList) {
-		hr = pCaptureDevices->Item(i, &ppDevice);
-		if(FAILED(hr)) return hr;
-
-		hr = ppDevice->OpenPropertyStore(STGM_READ, &pProps);
-		if(FAILED(hr)) return hr;
-
-        hr = pProps->GetValue(PKEY_Device_FriendlyName, &varName);
-		if(!SUCCEEDED(hr)) return hr;
-
-		std::wstring name (varName.pwszVal);
-		s = gcnew String(name.c_str());
-		i++;
-	}
-
-    safeRelease(&ppDevice);
-	safeRelease(&pProps);
-	CoTaskMemFree(ppStrId);
-	return 0;
-}
-
 HRESULT AudioLibrary::AudioEngine::setRenderDevice(UINT num)
 {
-    HRESULT hr = S_OK;
-	UINT pcDevices;
-	pin_ptr<IMMDevice *> pinnedRenderDevicePtr = &pRenderDevice;
-    safeRelease(reinterpret_cast<IMMDevice **>(pinnedRenderDevicePtr));
-
-	hr = pRenderDevices->GetCount(&pcDevices);
-	if(FAILED(hr)) return hr;
-	if(num < 0 || num >= pcDevices) return E_INVALIDARG;
-	
-	pin_ptr<IMMDevice *> pinnedRenderPtr = &pRenderDevice;
-	hr = pRenderDevices->Item(num, pinnedRenderPtr);
-	if(FAILED(hr)) return hr;
-
-	return hr;
-}
-
-HRESULT AudioLibrary::AudioEngine::setCaptureDevice(UINT num)
-{
-    HRESULT hr = S_OK;
-	UINT pcDevices;
-	pin_ptr<IMMDevice *> pinnedCaptureDevicePtr = &pCaptureDevice;
-    safeRelease(reinterpret_cast<IMMDevice **>(pinnedCaptureDevicePtr));
-
-	hr = pCaptureDevices->GetCount(&pcDevices);
-	if(FAILED(hr)) return hr;
-	if(num < 0 || num >= pcDevices) return E_INVALIDARG;
-	
-	pin_ptr<IMMDevice *> pinnedCapturePtr = &pCaptureDevice;
-	hr = pCaptureDevices->Item(num, pinnedCapturePtr);
-	if(FAILED(hr)) return hr;
-
-	return hr;
+	return innerEngine->setRenderDevice(num);
 }
 
 HRESULT AudioLibrary::AudioEngine::setDefaultRenderDevice()
 {
-    HRESULT hr = S_OK;
-	
-	pin_ptr<IMMDevice *> pinnedRenderDevicePtr = &pRenderDevice;
-	hr = pEnumerator->GetDefaultAudioEndpoint(eRender, eConsole, pinnedRenderDevicePtr);
-	if(FAILED(hr)) return hr;
+	return innerEngine->setDefaultRenderDevice();
+}
 
-	return hr;
+HRESULT AudioLibrary::AudioEngine::setCaptureDevice(UINT num)
+{
+	return innerEngine->setCaptureDevice(num);
 }
 
 HRESULT AudioLibrary::AudioEngine::setDefaultCaptureDevice()
 {
-    HRESULT hr = S_OK;
-	
-	pin_ptr<IMMDevice *> pinnedCaptureDevicePtr = &pCaptureDevice;
-	hr = pEnumerator->GetDefaultAudioEndpoint(eCapture, eConsole, pinnedCaptureDevicePtr);
-	if(FAILED(hr)) return hr;
-
-	return hr;
-}
-
-HRESULT AudioLibrary::AudioEngine::initializeDevices()
-{
-    HRESULT hr = S_OK;
-	WAVEFORMATEX *waveFormat;
-
-	// INIT CAPTURE DEVICE
-	pin_ptr<IAudioClient *> pinnedCaptureAudioClientPtr = &pCaptureAudioClient;
-	hr = pCaptureDevice->Activate(IID_IAudioClient, CLSCTX_ALL, NULL, (void**)pinnedCaptureAudioClientPtr);
-	if(FAILED(hr)) return hr;
-
-    hr = pCaptureAudioClient->GetMixFormat(&waveFormat);
-	if(FAILED(hr)) return hr;
-    frameSize = waveFormat->nBlockAlign;
-
-    hr = audioStream->setWaveFormat(waveFormat);
-	if(FAILED(hr)) return hr;
-
-    hr = pCaptureAudioClient->Initialize(AUDCLNT_SHAREMODE_SHARED, 
-		AUDCLNT_STREAMFLAGS_EVENTCALLBACK | AUDCLNT_STREAMFLAGS_NOPERSIST, 
-		engineLatency*10000, 0, waveFormat, NULL); // latency in 100 nano seconds
-	if(FAILED(hr)) return hr;
-
-	// set EventHandle
-	hr = pCaptureAudioClient->SetEventHandle(captureSamplesReadyEvent);
-	if(FAILED(hr)) return hr;
-	
-    // Get the size of the allocated buffer.
-	pin_ptr<UINT32> pinnedCaptureBufferFrameCountPtr = &captureBufferFrameCount;
-    hr = pCaptureAudioClient->GetBufferSize(pinnedCaptureBufferFrameCountPtr);
-	if(FAILED(hr)) return hr;
-	
-	pin_ptr<IAudioCaptureClient *> pinnedCaptureClientPtr = &pCaptureClient;
-    hr = pCaptureAudioClient->GetService(IID_IAudioCaptureClient, (void**)pinnedCaptureClientPtr);
-	if(FAILED(hr)) return hr;
-
-	// INIT RENDER DEVICE
-	pin_ptr<IAudioClient *> pinnedRenderAudioClientPtr = &pRenderAudioClient;
-	hr = pRenderDevice->Activate(IID_IAudioClient, CLSCTX_ALL, NULL, (void**)pinnedRenderAudioClientPtr);
-	if(FAILED(hr)) return hr;
-
-    hr = pRenderAudioClient->Initialize(AUDCLNT_SHAREMODE_SHARED, 
-		AUDCLNT_STREAMFLAGS_EVENTCALLBACK | AUDCLNT_STREAMFLAGS_NOPERSIST, 
-		engineLatency*10000, 0, waveFormat, NULL);
-	if(FAILED(hr)) return hr;
-
-	// set EventHandle
-	hr = pRenderAudioClient->SetEventHandle(renderSamplesReadyEvent);
-	if(FAILED(hr)) return hr;
-
-    // Get the actual size of the allocated buffer.
-	pin_ptr<UINT32> pinnedRenderBufferFrameCountPtr = &renderBufferFrameCount;
-    hr = pRenderAudioClient->GetBufferSize(pinnedRenderBufferFrameCountPtr);
-	if(FAILED(hr)) return hr;
-	
-	pin_ptr<IAudioRenderClient *> pinnedRenderClientPtr = &pRenderClient;
-    hr = pRenderAudioClient->GetService(IID_IAudioRenderClient, (void**)pinnedRenderClientPtr);
-	if(FAILED(hr)) return hr;
-	
-	pin_ptr<ISimpleAudioVolume *> pinnedAudioVolumePtr = &pAudioVolume;
-    hr = pRenderAudioClient->GetService(IID_ISimpleAudioVolume, (void**)pinnedAudioVolumePtr);
-	if(FAILED(hr)) return hr;
-	return hr;
-}
-
-void AudioLibrary::AudioEngine::captureAudioStream()
-{
-    HRESULT hr = S_OK;
-    bool stillPlaying = true;
-    HANDLE waitArray[2] = {captureShutdownEvent, captureSamplesReadyEvent };
-    BYTE *pData;
-    UINT32 framesAvailable;
-    DWORD  flags;
-
-    while (stillPlaying)
-    {
-        DWORD waitResult = WaitForMultipleObjects(2, waitArray, FALSE, INFINITE);
-        switch (waitResult)
-        {
-        case WAIT_OBJECT_0 + 0:     // shutdownEvent
-            stillPlaying = false;   // We're done, exit the loop.
-            break;
-        case WAIT_OBJECT_0 + 1:		// captureSamplesReadyEvent
-            hr = pCaptureClient->GetBuffer(&pData, &framesAvailable, &flags, NULL, NULL);
-            if (SUCCEEDED(hr))
-            {
-                if (framesAvailable != 0)
-                {
-                    if (flags & AUDCLNT_BUFFERFLAGS_SILENT)
-						audioStream->storeNullData(framesAvailable*frameSize);
-                    else {
-						hr = audioStream->storeData(pData, framesAvailable*frameSize);
-					}
-                }
-                hr = pCaptureClient->ReleaseBuffer(framesAvailable);
-                if (FAILED(hr))
-                    printf("Unable to release capture buffer: %x!\n", hr);
-            }
-            break;
-        }
-    }
-}
-
-void AudioLibrary::AudioEngine::renderAudioStream()
-{
-	// TODO fix the audioformat so its playable in here!
-    HRESULT hr = S_OK;
-    bool stillPlaying = true;
-    HANDLE waitArray[2] = {renderShutdownEvent, renderSamplesReadyEvent};
-    BYTE *pData;
-    UINT32 framesAvailable;
-    UINT32 padding;
-	DWORD flags = 0;
-
-    while (stillPlaying)
-    {
-        DWORD waitResult = WaitForMultipleObjects(2, waitArray, FALSE, INFINITE);
-        switch (waitResult)
-        {
-        case WAIT_OBJECT_0 + 0:     // shutdownEvent
-            stillPlaying = false;   // We're done, exit the loop.
-            break;
-        case WAIT_OBJECT_0 + 1:     // renderSamplesReadyEvent
-            hr = pRenderAudioClient->GetCurrentPadding(&padding);
-            if (SUCCEEDED(hr))
-            {
-                framesAvailable = renderBufferFrameCount - padding;
-                UINT32 framesToWrite = min(audioStream->getAvailableData() / frameSize, framesAvailable);
-				if(framesToWrite > 0) { // if no data available, skip this render
-					hr = pRenderClient->GetBuffer(framesToWrite, &pData);
-					if (SUCCEEDED(hr))
-					{
-						audioStream->loadData(pData, framesToWrite*frameSize, &flags);
-						hr = pRenderClient->ReleaseBuffer(framesToWrite, flags);
-						if (!SUCCEEDED(hr))
-						{
-							printf("Unable to release buffer: %x\n", hr);
-							stillPlaying = false;
-						}
-					}
-				}
-            }
-            break;
-        }
-    }
+	return innerEngine->setDefaultCaptureDevice();
 }
 
 HRESULT AudioLibrary::AudioEngine::startAudioStream()
 {
-    HRESULT hr = S_OK;
-	
-	audioStream->initialize(frameSize* max(captureBufferFrameCount, renderBufferFrameCount));
-
-	hr = pCaptureAudioClient->Start();  // Start recording.
-	if(FAILED(hr)) return hr;
-	hr = pRenderAudioClient->Start();  // Start playing.
-	if(FAILED(hr)) return hr;
-	audioStream->openWriter();
-
-	ThreadStart ^pRenderThread = gcnew ThreadStart(this, &AudioLibrary::AudioEngine::renderAudioStream);
-	ThreadStart ^pCaptureThread = gcnew ThreadStart(this, &AudioLibrary::AudioEngine::captureAudioStream);
-	captureThread = gcnew Thread(pCaptureThread);
-	renderThread = gcnew Thread(pRenderThread);
-	
-	captureThread->Start();
-	//renderThread->Start();
-
-	audioStreamStatus = true;
-	return hr;
+	return innerEngine->startAudioStream();
 }
 
 HRESULT AudioLibrary::AudioEngine::stopAudioStream()
 {
-    HRESULT hr = S_OK;
-	// make event to shut down the threads
-	if(captureShutdownEvent) {
-		SetEvent(captureShutdownEvent);
-	}
-	if(renderShutdownEvent) {
-		SetEvent(renderShutdownEvent);
-	}
-	// Abort any thread that is still alive after shutdown
-	if(captureThread->IsAlive) {
-		captureThread->Abort();
-	}
-	if(renderThread->IsAlive) {
-		renderThread->Abort();
-	}
-	
-    hr = pCaptureAudioClient->Stop();  // Stop recording.
-	if(FAILED(hr)) return hr;
-    hr = pRenderAudioClient->Stop();  // Stop playing.
-	if(FAILED(hr)) return hr;
-	audioStream->closeWriter();
-
-	audioStreamStatus = false;
-	return true;
+	return innerEngine->stopAudioStream();
 }
 
 HRESULT AudioLibrary::AudioEngine::volumeUp(float fLevel)
 {
-    HRESULT hr = S_OK;
-	
-	float res;
-	hr = pAudioVolume->GetMasterVolume(&res);
-	if(FAILED(hr)) return hr;
-
-	res += fLevel;
-	if(res > 1.0f) res = 1.0f;
-
-	hr = pAudioVolume->SetMasterVolume(res, NULL);
-	if(FAILED(hr)) return hr;
-
-	return res;
+	return innerEngine->volumeUp(fLevel);
 }
 
 HRESULT AudioLibrary::AudioEngine::volumeDown(float fLevel)
 {
-    HRESULT hr = S_OK;
-	
-	float res;
-	hr = pAudioVolume->GetMasterVolume(&res);
-	if(FAILED(hr)) return hr;
-
-	res -= fLevel;
-	if(res < 0.0f) res = 0.0f;
-
-	hr = pAudioVolume->SetMasterVolume(res, NULL);
-	if(FAILED(hr)) return hr;
-
-	return res;
+	return innerEngine->volumeDown(fLevel);
 }
 
 HRESULT AudioLibrary::AudioEngine::setVolume(float fLevel)
 {
-    HRESULT hr = S_OK;
-	
-	float res = fLevel;
-	if(res < 0.0f) res = 0.0f;
-	if(res > 1.0f) res = 1.0f;
-	hr = pAudioVolume->SetMasterVolume(res, NULL);
-	if(FAILED(hr)) return hr;
-
-	return res;
+	return innerEngine->setVolume(fLevel);
 }
 
 HRESULT AudioLibrary::AudioEngine::toggleMute()
 {
-    HRESULT hr = S_OK;
-	
-	BOOL mute;
-	hr = pAudioVolume->GetMute(&mute);
-	if(FAILED(hr)) return hr;
-
-	hr = pAudioVolume->SetMute(!mute, NULL);
-	if(FAILED(hr)) return hr;
-
-	return hr;
+	return innerEngine->toggleMute();
 }
+
 
 /* ==========================
    ===    AUDIOSTREAM     ===
@@ -523,9 +98,12 @@ HRESULT AudioLibrary::AudioEngine::toggleMute()
 
 AudioLibrary::AudioStream::AudioStream() 
 {
-	waveFormat = NULL;
-	data = NULL;
-	dataSize = 0;
+	renderFormat = NULL;
+	captureFormat = NULL;
+	capturedData = NULL;
+	renderData = NULL;
+	numRenderFrames = 0;
+	numCaptureFrames = 0;
 	currentFlags = 0;
 }
 
@@ -534,66 +112,97 @@ AudioLibrary::AudioStream::~AudioStream()
 	dispose();
 }
 
-// buffer for 1 second for each channel
-HRESULT AudioLibrary::AudioStream::initialize(int bufferSize)
+HRESULT AudioLibrary::AudioStream::initialize(UINT32 numCaptureFrames_, UINT32 numRenderFrames_)
 {
 	// 2 buffers, one for storing and one for loading (keeps swicthing)
-	dataSize = bufferSize;
-	lastStored = -1;
-	if(data) {
-		free(data[0]);
-		free(data[1]);
-	} else {
-		data = (BYTE**) realloc(data, sizeof(BYTE*)*2);
-	}		
-	data[0] = (BYTE*) malloc(sizeof(BYTE)*dataSize);
-	data[1] = (BYTE*) malloc(sizeof(BYTE)*dataSize);
+	numCaptureFrames = numCaptureFrames_;
+	numRenderFrames = numRenderFrames_;
+	dataIsReady = 0;
+	if(!renderFormat) return CUSTOM_E_FORMAT_NOT_SET;
+	if(!captureFormat) return CUSTOM_E_FORMAT_NOT_SET;
+	if(capturedData)
+		free(capturedData);
+	if(renderData)
+		free(renderData);
+	capturedData = (BYTE*) malloc(sizeof(BYTE)*numCaptureFrames*renderFormat->nBlockAlign);
+	renderData = (BYTE*) malloc(sizeof(BYTE)*numRenderFrames*captureFormat->nBlockAlign);
+	DWORD LCMSampleRate = LeastCommonMultiple(renderFormat->nSamplesPerSec, captureFormat->nSamplesPerSec);
+	renderSamplePos = LCMSampleRate / renderFormat->nBlockAlign;
+	captureSamplePos = LCMSampleRate / captureFormat->nBlockAlign;
+	
 	return S_OK;
 }
 
-HRESULT AudioLibrary::AudioStream::setWaveFormat(WAVEFORMATEX *waveFormat_)
+HRESULT AudioLibrary::AudioStream::setRenderFormat(WAVEFORMATEX *renderFormat_)
 {
-	if(waveFormat) {
-        CoTaskMemFree(waveFormat);
-        waveFormat = NULL;
+	if(renderFormat) {
+        CoTaskMemFree(renderFormat);
+        renderFormat = NULL;
 	}
-	waveFormat = (WAVEFORMATEX*) CoTaskMemAlloc(sizeof(WAVEFORMATEX) + waveFormat_->cbSize);
-	memcpy(waveFormat, waveFormat_, sizeof(WAVEFORMATEX) + waveFormat_->cbSize);
+	renderFormat = (WAVEFORMATEX*) CoTaskMemAlloc(sizeof(WAVEFORMATEX) + renderFormat_->cbSize);
+	memcpy(renderFormat, renderFormat_, sizeof(WAVEFORMATEX) + renderFormat_->cbSize);
 	return S_OK;
 }
 
-HRESULT AudioLibrary::AudioStream::storeNullData(UINT32 numBytesAvailable)
+HRESULT AudioLibrary::AudioStream::setCaptureFormat(WAVEFORMATEX *captureFormat_)
 {
-	if(numBytesAvailable > dataSize)
+	if(captureFormat) {
+        CoTaskMemFree(captureFormat);
+        captureFormat = NULL;
+	}
+	captureFormat = (WAVEFORMATEX*) CoTaskMemAlloc(sizeof(WAVEFORMATEX) + captureFormat_->cbSize);
+	memcpy(captureFormat, captureFormat_, sizeof(WAVEFORMATEX) + captureFormat_->cbSize);
+	return S_OK;
+}
+
+WAVEFORMATEX *AudioLibrary::AudioStream::getRenderFormat()
+{
+	return renderFormat;
+}
+
+WAVEFORMATEX *AudioLibrary::AudioStream::getCaptureFormat()
+{
+	return captureFormat;
+}
+
+HRESULT AudioLibrary::AudioStream::storeNullData(UINT32 numFramesAvailable)
+{
+	UINT32 numBytesAvailable = numFramesAvailable*captureFormat->nBlockAlign;
+	if(numFramesAvailable > numCaptureFrames)
 		return E_INVALIDARG;
 	
 	// store zeros in buffer
-	lastStored = (lastStored + 1) % 2;
-	SecureZeroMemory(data[lastStored], numBytesAvailable);
+	SecureZeroMemory(capturedData, numBytesAvailable);
+	numAvailableFrames = numBytesAvailable;
+	convertWaveFormat();
 
 	return S_OK;
 }
 
-HRESULT AudioLibrary::AudioStream::storeData(const BYTE *pData, UINT32 numBytesAvailable)
+HRESULT AudioLibrary::AudioStream::storeData(const BYTE *pData, UINT32 numFramesAvailable)
 {
-	if(numBytesAvailable > dataSize)
+	UINT32 numBytesAvailable = numFramesAvailable*captureFormat->nBlockAlign;
+	if(numFramesAvailable > numCaptureFrames)
 		return E_INVALIDARG;
 	
 	// store from pData
-	lastStored = (lastStored + 1) % 2;
-	memcpy(data[lastStored], pData, numBytesAvailable); 
+	memcpy(capturedData, pData, numBytesAvailable); 
+	numAvailableFrames = numBytesAvailable;
+	convertWaveFormat();
 
-    captureWriter->writeData(data[lastStored], numBytesAvailable);
+    captureWriter->writeData(capturedData, numBytesAvailable);
 	return S_OK;
 }
 
-HRESULT AudioLibrary::AudioStream::loadData(BYTE *pData, UINT32 numBytesAvailable, DWORD *flags)
+HRESULT AudioLibrary::AudioStream::loadData(BYTE *pData, UINT32 numFramesAvailable, DWORD *flags)
 {
-	if(numBytesAvailable > dataSize)
+	UINT32 numBytesAvailable = numFramesAvailable*renderFormat->nBlockAlign;
+	if(numFramesAvailable > numRenderFrames)
 		return E_INVALIDARG;
 
 	// load to pData
-	memcpy(pData, data[lastStored], numBytesAvailable); 
+	memcpy(pData, renderData, numBytesAvailable); 
+	dataIsReady = 0;
 	
 	// set flags
 	if(numBytesAvailable == 0) currentFlags |= AUDCLNT_BUFFERFLAGS_SILENT;
@@ -604,19 +213,19 @@ HRESULT AudioLibrary::AudioStream::loadData(BYTE *pData, UINT32 numBytesAvailabl
 
 }
 
-UINT32 AudioLibrary::AudioStream::getAvailableData() 
+UINT32 AudioLibrary::AudioStream::getAvailableFrames() 
 {
-	if (lastStored > -1)
-		return dataSize;
+	if (dataIsReady == 1)
+		return numAvailableFrames;
 	else 
 		return 0;
 }
 
 void AudioLibrary::AudioStream::openWriter()
 {
-	captureWriter = gcnew WaveFileWriter("capture.wav", waveFormat);
+	captureWriter = new WaveFileWriter("capture.wav", captureFormat);
 	captureWriter->open();
-	renderWriter = gcnew WaveFileWriter("render.wav", waveFormat);
+	renderWriter = new WaveFileWriter("render.wav", renderFormat);
 	renderWriter->open();
 }
 
@@ -628,15 +237,73 @@ void AudioLibrary::AudioStream::closeWriter()
 
 void AudioLibrary::AudioStream::dispose() 
 {
-	if(data) {
-		free(data);
-		data = NULL;
+	if(renderData) {
+		free(renderData);
+		renderData = NULL;
 	}
-	if (waveFormat)
+	if(capturedData) {
+		free(capturedData);
+		capturedData = NULL;
+	}
+	if (captureFormat)
     {
-        CoTaskMemFree(waveFormat);
-        waveFormat = NULL;
+        CoTaskMemFree(captureFormat);
+        captureFormat = NULL;
     }
+	if (renderFormat)
+    {
+        CoTaskMemFree(renderFormat);
+        renderFormat = NULL;
+    }
+}
+
+DWORD AudioLibrary::AudioStream::convertWaveFormat()
+{
+	HRESULT hr = S_OK;
+	if(renderSamplePos == captureSamplePos)
+		memcpy(renderData, capturedData, min(numCaptureFrames, numRenderFrames));
+	else
+		hr = resample<DWORD>();
+	dataIsReady = 1;
+	return 0;
+}
+
+template <class SAMPLETYPE>  HRESULT AudioLibrary::AudioStream::resample()
+{
+	HRESULT hr = S_OK;
+	UINT32 captureIdx = 1;
+	UINT32 captureCount = captureSamplePos;
+	UINT32 totalCaptures = numCaptureFrames*captureFormat->nBlockAlign;
+	UINT32 renderCount = 0;
+	// reinterpret cast here to valid size of the numbers
+	SAMPLETYPE *source = reinterpret_cast<SAMPLETYPE *>(capturedData);
+	SAMPLETYPE *destination = reinterpret_cast<SAMPLETYPE *>(renderData);
+	for(UINT32 i = 0; i < numCaptureFrames; i+=renderFormat->nSamplesPerSec) {
+		while(captureCount < renderCount && captureIdx < totalCaptures) {
+			captureCount += captureSamplePos;
+			captureIdx++;
+		}
+		destination[i] = LinearInterpolation<DWORD>(source[captureIdx-1], source[captureIdx], ((float)(renderCount%captureSamplePos))/captureSamplePos);
+		// TODO APPLY EFFECTS IN HERE FOR destination[i] AND destination[i+1]
+		renderCount += 147;
+	}
+	return hr;
+}
+
+DWORD AudioLibrary::AudioStream::LeastCommonMultiple(DWORD rate1, DWORD rate2)
+{
+	DWORD gcd = GreatestCommonDivisor(rate1, rate2);
+	return ( rate1 * rate2 ) / gcd;
+}
+
+DWORD AudioLibrary::AudioStream::GreatestCommonDivisor(DWORD rate1, DWORD rate2)
+{
+	if(rate1 == rate2)
+		return rate1;
+	else if (rate2 < rate1)
+		return GreatestCommonDivisor(rate1 - rate2, rate2);
+	else
+		return GreatestCommonDivisor(rate1, rate2 - rate1);
 }
 
 
@@ -647,30 +314,33 @@ void AudioLibrary::AudioStream::dispose()
 
 AudioLibrary::WaveFileWriter::WaveFileWriter(const char *filename_, WAVEFORMATEX *waveFormat_)
 {
-	filename = gcnew String(filename_);
-	waveFormat = (WAVEFORMATEX*) realloc(waveFormat, sizeof(WAVEFORMATEX) + waveFormat_->cbSize);
+	filename = std::string(filename_);
+	waveFormat = (WAVEFORMATEX*) malloc(sizeof(WAVEFORMATEX) + waveFormat_->cbSize);
 	memcpy(waveFormat, waveFormat_, sizeof(WAVEFORMATEX) + waveFormat_->cbSize);
 	waveFileSize = 0;
 }
 
 void AudioLibrary::WaveFileWriter::open()
 {
-	fs = gcnew FileStream(filename, System::IO::FileMode::Create, System::IO::FileAccess::Write); 
-	w = gcnew BinaryWriter(fs);
+	myfile.open (filename, std::ios::out | std::ios::binary);
 	headerSize = sizeof(WAVEHEADER) + sizeof(WAVEFORMATEX) + waveFormat->cbSize + sizeof(WaveData) + sizeof(DWORD);
 	waveFileSize = headerSize;
-
-	for (int i=0; i<headerSize; i++)
-		w->Write(0x00);
+	
+	if(myfile.is_open()) {
+		char *temp = (char*)malloc(sizeof(char)*headerSize);
+		myfile.write(temp, headerSize);
+		free(temp);
+	}
 }
 
 bool AudioLibrary::WaveFileWriter::writeData(const BYTE* data, UINT32 dataSize)
 {
-	for (int i=0; i<dataSize; i++)
-		w->Write(data[i]);
-
-	waveFileSize += dataSize;
-	return true;
+	if(myfile.is_open()) {
+		myfile.write((const char*)data, dataSize);
+		waveFileSize += dataSize;
+		return true;
+	} else 
+		return false;
 }
 
 void AudioLibrary::WaveFileWriter::close()
@@ -696,10 +366,906 @@ void AudioLibrary::WaveFileWriter::close()
     waveFilePointer += sizeof(WaveData);
     *(reinterpret_cast<DWORD *>(waveFilePointer)) = static_cast<DWORD>(waveFileSize - headerSize);
 	
-	fs->Position = 0;
-	for (int i=0; i<headerSize; i++)
-		w->Write(waveFileData[i]);
-	fs->Close();
+	if(myfile.is_open()) {
+		myfile.seekp(0, std::ios::beg);
+		myfile.write((const char*)waveFileData, headerSize);
+	}
+	myfile.close();
+}
+
+
+/* ==========================
+   ===  INNERAUDIOENGINE  ===
+   ===   IMPLEMENTATION   ===
+   ========================== */
+
+AudioLibrary::InnerAudioEngine::InnerAudioEngine(UINT32 _EngineLatencyInMS, bool enableStreamSwitch_) 
+{
+	pCaptureAudioClient = NULL;
+	pCaptureClient = NULL;
+	pRenderAudioClient = NULL;
+	pRenderClient = NULL;
+	pCaptureClient = NULL;
+	pRenderDevices = NULL;
+	pCaptureDevices = NULL;
+	pRenderDevice = NULL;
+	pCaptureDevice = NULL;
+	pAudioSessionControl = NULL;
+	pAudioVolume = NULL;
+	captureShutdownEvent = NULL;
+	renderShutdownEvent = NULL;
+	captureSamplesReadyEvent = NULL;
+	renderSamplesReadyEvent = NULL;
+	streamSwitchEvent = NULL;
+	streamSwitchCompleteEvent = NULL;
+	captureThread = NULL;
+	renderThread = NULL;
+	pAudioStream = new AudioStream();
+	engineLatency = _EngineLatencyInMS;
+	enableStreamSwitch = enableStreamSwitch_;
+	inStreamSwitch = false;
+	audioStreamStatus = false;
+}
+
+HRESULT AudioLibrary::InnerAudioEngine::initialize() 
+{
+    HRESULT hr = S_OK;
+	pin_ptr<IMMDeviceEnumerator *> pinnedEnumeratorPtr = &pEnumerator;
+
+    hr = CoCreateInstance(CLSID_MMDeviceEnumerator, NULL, CLSCTX_ALL, IID_IMMDeviceEnumerator, (void**)pinnedEnumeratorPtr);
+	if(FAILED(hr)) return hr;
+
+	pin_ptr<IMMDeviceCollection *> pinnedRenderPtr = &pRenderDevices;
+	hr = pEnumerator->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, pinnedRenderPtr);
+	if(FAILED(hr)) return hr;
+	
+	pin_ptr<IMMDeviceCollection *> pinnedCapturePtr = &pCaptureDevices;
+	hr = pEnumerator->EnumAudioEndpoints(eCapture, DEVICE_STATE_ACTIVE, pinnedCapturePtr);
+	if(FAILED(hr)) return hr;
+	
+
+	//initialize EventHandle
+    captureShutdownEvent = CreateEventEx(NULL, NULL, 0, EVENT_MODIFY_STATE | SYNCHRONIZE);
+    renderShutdownEvent = CreateEventEx(NULL, NULL, 0, EVENT_MODIFY_STATE | SYNCHRONIZE);
+    captureSamplesReadyEvent = CreateEventEx(NULL, NULL, 0, EVENT_MODIFY_STATE | SYNCHRONIZE);
+    renderSamplesReadyEvent = CreateEventEx(NULL, NULL, 0, EVENT_MODIFY_STATE | SYNCHRONIZE);
+	streamSwitchEvent = CreateEventEx(NULL, NULL, 0, EVENT_MODIFY_STATE | SYNCHRONIZE);
+	
+    hr = setDefaultRenderDevice();
+	if(FAILED(hr)) return hr;
+
+	hr = setDefaultCaptureDevice();
+	if(FAILED(hr)) return hr;
+
+	hr = initializeDevices();
+	if(FAILED(hr)) return hr;
+
+
+    if (enableStreamSwitch)
+    {
+        hr = initializeStreamSwitch();
+		if(FAILED(hr)) return hr;
+    }
+
+	return hr;
+}
+
+HRESULT AudioLibrary::InnerAudioEngine::initializeStreamSwitch() 
+{
+    HRESULT hr = S_OK;
+	
+	pin_ptr<IAudioSessionControl *> pinnedCaptureAudioClientPtr = &pAudioSessionControl;
+    hr = pCaptureAudioClient->GetService(IID_PPV_ARGS(&pAudioSessionControl));
+	if(FAILED(hr)) return hr;
+
+    streamSwitchCompleteEvent = CreateEventEx(NULL, NULL, CREATE_EVENT_INITIAL_SET | CREATE_EVENT_MANUAL_RESET, EVENT_MODIFY_STATE | SYNCHRONIZE);
+
+    hr = pAudioSessionControl->RegisterAudioSessionNotification(this);
+	if(FAILED(hr)) return hr;
+
+    hr = pEnumerator->RegisterEndpointNotificationCallback(this);
+	if(FAILED(hr)) return hr;
+
+    return true;
+	return hr;
+}
+
+HRESULT AudioLibrary::InnerAudioEngine::terminateStreamSwitch() 
+{
+    HRESULT hr = S_OK;
+    hr = pAudioSessionControl->UnregisterAudioSessionNotification(this);
+    if (FAILED(hr)) return hr;
+
+    pEnumerator->UnregisterEndpointNotificationCallback(this);
+    if (FAILED(hr)) return hr;
+
+    if (streamSwitchCompleteEvent)
+    {
+        CloseHandle(streamSwitchCompleteEvent);
+        streamSwitchCompleteEvent = NULL;
+    }
+	
+	pin_ptr<IAudioSessionControl *> pinnedCaptureAudioClientPtr = &pAudioSessionControl;
+    safeRelease(reinterpret_cast<IMMDeviceEnumerator **>(pinnedCaptureAudioClientPtr));
+
+	pin_ptr<IMMDeviceEnumerator *> pinnedEnumeratorPtr = &pEnumerator;
+    safeRelease(reinterpret_cast<IMMDeviceEnumerator **>(pinnedEnumeratorPtr));
+
+	return hr;
+}
+
+void AudioLibrary::InnerAudioEngine::dispose()
+{
+	if(audioStreamStatus)
+		stopAudioStream();
+
+	if(captureShutdownEvent) {
+		CloseHandle(captureShutdownEvent);
+		captureShutdownEvent = NULL;
+	}
+	if(renderShutdownEvent) {
+		CloseHandle(renderShutdownEvent);
+		renderShutdownEvent = NULL;
+	}
+	if(renderSamplesReadyEvent) {
+		CloseHandle(renderSamplesReadyEvent);
+		renderSamplesReadyEvent = NULL;
+	}
+	if(captureSamplesReadyEvent) {
+		CloseHandle(captureSamplesReadyEvent);
+		captureSamplesReadyEvent = NULL;
+	}
+	if(streamSwitchEvent) {
+		CloseHandle(streamSwitchEvent);
+		streamSwitchEvent = NULL;
+	}
+
+	pAudioStream->dispose();
+
+	pin_ptr<IAudioClient *> pinnedCaptureAudioClientPtr = &pCaptureAudioClient;
+    safeRelease(reinterpret_cast<IAudioClient **>(pinnedCaptureAudioClientPtr));
+
+	pin_ptr<IAudioCaptureClient *> pinnedCaptureClientPtr = &pCaptureClient;
+    safeRelease(reinterpret_cast<IAudioCaptureClient **>(pinnedCaptureClientPtr));
+
+	pin_ptr<IAudioClient *> pinnedRenderAudioClientPtr = &pRenderAudioClient;
+    safeRelease(reinterpret_cast<IAudioClient **>(pinnedRenderAudioClientPtr));
+
+	pin_ptr<IAudioRenderClient *> pinnedRenderClientPtr = &pRenderClient;
+    safeRelease(reinterpret_cast<IAudioRenderClient **>(pinnedRenderClientPtr));
+
+	pin_ptr<IMMDeviceCollection *> pinnedRenderDevicesPtr = &pRenderDevices;
+    safeRelease(reinterpret_cast<IMMDeviceCollection **>(pinnedRenderDevicesPtr));
+
+	pin_ptr<IMMDeviceCollection *> pinnedCaptureDevicesPtr = &pCaptureDevices;
+    safeRelease(reinterpret_cast<IMMDeviceCollection **>(pinnedCaptureDevicesPtr));
+
+	pin_ptr<IMMDevice *> pinnedRenderDevicePtr = &pRenderDevice;
+    safeRelease(reinterpret_cast<IMMDevice **>(pinnedRenderDevicePtr));
+
+	pin_ptr<IMMDevice *> pinnedCaptureDevicePtr = &pCaptureDevice;
+    safeRelease(reinterpret_cast<IMMDevice **>(pinnedCaptureDevicePtr));
+
+    if (enableStreamSwitch)
+        terminateStreamSwitch();
+    else {
+		pin_ptr<IMMDeviceEnumerator *> pinnedEnumeratorPtr = &pEnumerator;
+		safeRelease(reinterpret_cast<IMMDeviceEnumerator **>(pinnedEnumeratorPtr));
+	}
+}
+
+array<String^> ^AudioLibrary::InnerAudioEngine::makeRenderDeviceList()
+{
+    HRESULT hr = S_OK;
+	UINT pcDevices = 0;
+	IMMDevice *ppDevice = NULL;
+	IPropertyStore *pProps = NULL;
+	LPWSTR ppStrId = NULL;
+	UINT i = 0;
+	PROPVARIANT varName;
+
+	hr = pRenderDevices->GetCount(&pcDevices);
+	
+	array<String^> ^renderDevicesList = gcnew array<String^>(pcDevices);
+    PropVariantInit(&varName);
+
+	for each(String^% s in renderDevicesList) {
+		hr = pRenderDevices->Item(i, &ppDevice);
+		if(FAILED(hr)) return renderDevicesList;
+
+		hr = ppDevice->OpenPropertyStore(STGM_READ, &pProps);
+		if(FAILED(hr)) return renderDevicesList;
+
+        hr = pProps->GetValue(PKEY_Device_FriendlyName, &varName);
+		if(!SUCCEEDED(hr)) return renderDevicesList;
+
+		std::wstring name (varName.pwszVal);
+		s = gcnew String(name.c_str());
+		i++;
+	}
+
+    safeRelease(&ppDevice);
+	safeRelease(&pProps);
+	CoTaskMemFree(ppStrId);
+	return renderDevicesList;
+}
+
+array<String^> ^ AudioLibrary::InnerAudioEngine::makeCaptureDeviceList()
+{
+    HRESULT hr = S_OK;
+	UINT pcDevices = 0;
+	IMMDevice *ppDevice = NULL;
+	IPropertyStore *pProps = NULL;
+	LPWSTR ppStrId = NULL;
+	UINT i = 0;
+	PROPVARIANT varName;
+
+	hr = pCaptureDevices->GetCount(&pcDevices);
+	
+	array<String^> ^captureDevicesList = gcnew array<String^>(pcDevices);
+    PropVariantInit(&varName);
+
+	for each(String^% s in captureDevicesList) {
+		hr = pCaptureDevices->Item(i, &ppDevice);
+		if(FAILED(hr)) return captureDevicesList;
+
+		hr = ppDevice->OpenPropertyStore(STGM_READ, &pProps);
+		if(FAILED(hr)) return captureDevicesList;
+
+        hr = pProps->GetValue(PKEY_Device_FriendlyName, &varName);
+		if(!SUCCEEDED(hr)) return captureDevicesList;
+
+		std::wstring name (varName.pwszVal);
+		s = gcnew String(name.c_str());
+		i++;
+	}
+
+    safeRelease(&ppDevice);
+	safeRelease(&pProps);
+	CoTaskMemFree(ppStrId);
+	return captureDevicesList;
+}
+
+HRESULT AudioLibrary::InnerAudioEngine::setRenderDevice(UINT num)
+{
+    HRESULT hr = S_OK;
+	UINT pcDevices;
+
+	pin_ptr<IMMDevice *> pinnedRenderDevicePtr = &pRenderDevice;
+    safeRelease(reinterpret_cast<IMMDevice **>(pinnedRenderDevicePtr));
+
+	hr = pRenderDevices->GetCount(&pcDevices);
+	if(FAILED(hr)) return hr;
+	if(num < 0 || num >= pcDevices) return E_INVALIDARG;
+	
+	hr = pRenderDevices->Item(num, pinnedRenderDevicePtr);
+	if(FAILED(hr)) return hr;
+	
+	pin_ptr<IAudioClient *> pinnedRenderAudioClientPtr = &pRenderAudioClient;
+    safeRelease(reinterpret_cast<IAudioClient **>(pinnedRenderAudioClientPtr));
+	hr = pRenderDevice->Activate(IID_IAudioClient, CLSCTX_ALL, NULL, (void**)pinnedRenderAudioClientPtr);
+	if(FAILED(hr)) return hr;
+
+	return hr;
+}
+
+HRESULT AudioLibrary::InnerAudioEngine::setDefaultRenderDevice()
+{
+    HRESULT hr = S_OK;
+	WAVEFORMATEX *waveFormat;
+
+	pin_ptr<IMMDevice *> pinnedRenderDevicePtr = &pRenderDevice;
+    safeRelease(reinterpret_cast<IMMDevice **>(pinnedRenderDevicePtr));
+	hr = pEnumerator->GetDefaultAudioEndpoint(eRender, eConsole, pinnedRenderDevicePtr);
+	if(FAILED(hr)) return hr;
+	
+	pin_ptr<IAudioClient *> pinnedRenderAudioClientPtr = &pRenderAudioClient;
+    safeRelease(reinterpret_cast<IAudioClient **>(pinnedRenderAudioClientPtr));
+	hr = pRenderDevice->Activate(IID_IAudioClient, CLSCTX_ALL, NULL, (void**)pinnedRenderAudioClientPtr);
+	if(FAILED(hr)) return hr;
+
+	return hr;
+}
+
+HRESULT AudioLibrary::InnerAudioEngine::setCaptureDevice(UINT num)
+{
+    HRESULT hr = S_OK;
+	WAVEFORMATEX *waveFormat;
+	UINT pcDevices;
+
+	pin_ptr<IMMDevice *> pinnedCaptureDevicePtr = &pCaptureDevice;
+    safeRelease(reinterpret_cast<IMMDevice **>(pinnedCaptureDevicePtr));
+
+	hr = pCaptureDevices->GetCount(&pcDevices);
+	if(FAILED(hr)) return hr;
+	if(num < 0 || num >= pcDevices) return E_INVALIDARG;
+	
+	hr = pCaptureDevices->Item(num, pinnedCaptureDevicePtr);
+	if(FAILED(hr)) return hr;
+	
+	pin_ptr<IAudioClient *> pinnedCaptureAudioClientPtr = &pCaptureAudioClient;
+    safeRelease(reinterpret_cast<IAudioClient **>(pinnedCaptureAudioClientPtr));
+	hr = pCaptureDevice->Activate(IID_IAudioClient, CLSCTX_ALL, NULL, (void**)pinnedCaptureAudioClientPtr);
+	if(FAILED(hr)) return hr;
+
+	return hr;
+}
+
+HRESULT AudioLibrary::InnerAudioEngine::setDefaultCaptureDevice()
+{
+    HRESULT hr = S_OK;
+	WAVEFORMATEX *waveFormat;
+	
+	pin_ptr<IMMDevice *> pinnedCaptureDevicePtr = &pCaptureDevice;
+    safeRelease(reinterpret_cast<IMMDevice **>(pinnedCaptureDevicePtr));
+	hr = pEnumerator->GetDefaultAudioEndpoint(eCapture, eConsole, pinnedCaptureDevicePtr);
+	if(FAILED(hr)) return hr;
+
+	pin_ptr<IAudioClient *> pinnedCaptureAudioClientPtr = &pCaptureAudioClient;
+    safeRelease(reinterpret_cast<IAudioClient **>(pinnedCaptureAudioClientPtr));
+	hr = pCaptureDevice->Activate(IID_IAudioClient, CLSCTX_ALL, NULL, (void**)pinnedCaptureAudioClientPtr);
+	if(FAILED(hr)) return hr;
+
+	return hr;
+}
+
+HRESULT AudioLibrary::InnerAudioEngine::initializeDevices()
+{
+    HRESULT hr = S_OK;
+	// set WaveFormat for both devices!
+	hr = setWaveFormats();
+	if(FAILED(hr)) return hr;
+
+	// INIT CAPTURE DEVICE
+    hr = pCaptureAudioClient->Initialize(AUDCLNT_SHAREMODE_SHARED, 
+		AUDCLNT_STREAMFLAGS_EVENTCALLBACK | AUDCLNT_STREAMFLAGS_NOPERSIST, 
+		engineLatency*10000, 0, pAudioStream->getCaptureFormat(), NULL); // latency in 100 nano seconds
+	if(FAILED(hr)) return hr;
+
+	// set EventHandle
+	hr = pCaptureAudioClient->SetEventHandle(captureSamplesReadyEvent);
+	if(FAILED(hr)) return hr;
+	
+    // Get the size of the allocated buffer.
+	pin_ptr<UINT32> pinnedCaptureBufferFrameCountPtr = &captureBufferFrameCount;
+    hr = pCaptureAudioClient->GetBufferSize(pinnedCaptureBufferFrameCountPtr);
+	if(FAILED(hr)) return hr;
+	
+	pin_ptr<IAudioCaptureClient *> pinnedCaptureClientPtr = &pCaptureClient;
+    safeRelease(reinterpret_cast<IAudioCaptureClient **>(pinnedCaptureClientPtr));
+    hr = pCaptureAudioClient->GetService(IID_IAudioCaptureClient, (void**)pinnedCaptureClientPtr);
+	if(FAILED(hr)) return hr;
+
+	// INIT RENDER DEVICE
+    hr = pRenderAudioClient->Initialize(AUDCLNT_SHAREMODE_SHARED, 
+		AUDCLNT_STREAMFLAGS_EVENTCALLBACK | AUDCLNT_STREAMFLAGS_NOPERSIST, 
+		engineLatency*10000, 0, pAudioStream->getRenderFormat(), NULL);
+	if(FAILED(hr)) return hr;
+
+	// set EventHandle
+	hr = pRenderAudioClient->SetEventHandle(renderSamplesReadyEvent);
+	if(FAILED(hr)) return hr;
+
+    // Get the actual size of the allocated buffer.
+	pin_ptr<UINT32> pinnedRenderBufferFrameCountPtr = &renderBufferFrameCount;
+    hr = pRenderAudioClient->GetBufferSize(pinnedRenderBufferFrameCountPtr);
+	if(FAILED(hr)) return hr;
+	
+	pin_ptr<IAudioRenderClient *> pinnedRenderClientPtr = &pRenderClient;
+    safeRelease(reinterpret_cast<IAudioRenderClient **>(pinnedRenderClientPtr));
+    hr = pRenderAudioClient->GetService(IID_IAudioRenderClient, (void**)pinnedRenderClientPtr);
+	if(FAILED(hr)) return hr;
+	
+	pin_ptr<ISimpleAudioVolume *> pinnedAudioVolumePtr = &pAudioVolume;
+	safeRelease(reinterpret_cast<ISimpleAudioVolume **>(pinnedAudioVolumePtr));
+    hr = pRenderAudioClient->GetService(IID_ISimpleAudioVolume, (void**)pinnedAudioVolumePtr);
+	if(FAILED(hr)) return hr;
+	return hr;
+}
+
+HRESULT AudioLibrary::InnerAudioEngine::setWaveFormats()
+{
+    HRESULT hr = S_OK;
+	WAVEFORMATEX *renderWaveFormat, *captureWaveFormat, *possibleRenderFormat, *possibleCaptureFormat;
+	
+    hr = pRenderAudioClient->GetMixFormat(&renderWaveFormat);
+	if(FAILED(hr)) return hr;
+
+	hr = pRenderAudioClient->IsFormatSupported(AUDCLNT_SHAREMODE_SHARED, renderWaveFormat, &possibleRenderFormat);
+	if(hr == S_FALSE)
+		hr = pAudioStream->setRenderFormat(possibleRenderFormat);
+	else if(SUCCEEDED(hr))
+		hr = pAudioStream->setRenderFormat(renderWaveFormat);
+	else return hr;
+	renderWaveFormat = pAudioStream->getRenderFormat();
+	
+    hr = pCaptureAudioClient->GetMixFormat(&captureWaveFormat);
+	if(FAILED(hr)) return hr;
+
+	hr = pCaptureAudioClient->IsFormatSupported(AUDCLNT_SHAREMODE_SHARED, renderWaveFormat, &possibleCaptureFormat);
+	if(hr == S_FALSE) {
+		hr = pCaptureAudioClient->IsFormatSupported(AUDCLNT_SHAREMODE_SHARED, captureWaveFormat, &possibleCaptureFormat);
+		if(hr == S_FALSE)
+			hr = pAudioStream->setCaptureFormat(possibleCaptureFormat);
+		else if(SUCCEEDED(hr))
+			hr = pAudioStream->setCaptureFormat(captureWaveFormat);
+		else return hr;
+	} else if(SUCCEEDED(hr))
+		hr = pAudioStream->setCaptureFormat(renderWaveFormat);
+	else return hr;
+
+
+	if(FAILED(hr)) return hr;
+	return hr;
+}
+
+DWORD AudioLibrary::InnerAudioEngine::captureAudioStream()
+{
+    HRESULT hr = S_OK;
+    bool stillPlaying = true;
+    HANDLE waitArray[3] = {captureShutdownEvent, streamSwitchEvent, captureSamplesReadyEvent };
+    BYTE *pData;
+    UINT32 framesAvailable;
+    DWORD  flags;
+
+    while (stillPlaying)
+    {
+        DWORD waitResult = WaitForMultipleObjects(3, waitArray, FALSE, INFINITE);
+        switch (waitResult)
+        {
+        case WAIT_OBJECT_0 + 0:     // shutdownEvent
+            stillPlaying = false;   // We're done, exit the loop.
+            break;
+        case WAIT_OBJECT_0 + 1:     // _StreamSwitchEvent
+            //
+            //  We need to stop the capturer, tear down the _AudioClient and _CaptureClient objects and re-create them on the new.
+            //  endpoint if possible.  If this fails, abort the thread.
+            //
+            if (!handleStreamSwitchEvent())
+            {
+                stillPlaying = false;
+            }
+            break;
+        case WAIT_OBJECT_0 + 2:		// captureSamplesReadyEvent
+            hr = pCaptureClient->GetBuffer(&pData, &framesAvailable, &flags, NULL, NULL);
+            if (SUCCEEDED(hr))
+            {
+                if (framesAvailable != 0)
+                {
+                    if (flags & AUDCLNT_BUFFERFLAGS_SILENT)
+						pAudioStream->storeNullData(framesAvailable);
+                    else {
+						hr = pAudioStream->storeData(pData, framesAvailable);
+					}
+                }
+                hr = pCaptureClient->ReleaseBuffer(framesAvailable);
+                if (FAILED(hr))
+                    printf("Unable to release capture buffer: %x!\n", hr);
+            }
+            break;
+        }
+    }
+	return 0;
+}
+
+DWORD AudioLibrary::InnerAudioEngine::renderAudioStream()
+{
+    HRESULT hr = S_OK;
+    bool stillPlaying = true;
+    HANDLE waitArray[2] = {renderShutdownEvent, renderSamplesReadyEvent};
+    BYTE *pData;
+    UINT32 framesAvailable;
+    UINT32 padding;
+	DWORD flags = 0;
+
+    while (stillPlaying)
+    {
+        DWORD waitResult = WaitForMultipleObjects(2, waitArray, FALSE, INFINITE);
+        switch (waitResult)
+        {
+        case WAIT_OBJECT_0 + 0:     // shutdownEvent
+            stillPlaying = false;   // We're done, exit the loop.
+            break;
+        case WAIT_OBJECT_0 + 1:     // renderSamplesReadyEvent
+            hr = pRenderAudioClient->GetCurrentPadding(&padding);
+            if (SUCCEEDED(hr))
+            {
+                framesAvailable = renderBufferFrameCount - padding;
+                UINT32 framesToWrite = min(pAudioStream->getAvailableFrames() , framesAvailable);
+				if(framesToWrite > 0) {
+					hr = pRenderClient->GetBuffer(framesToWrite, &pData);
+					if (SUCCEEDED(hr))
+					{
+						pAudioStream->loadData(pData, framesToWrite, &flags);
+						hr = pRenderClient->ReleaseBuffer(framesToWrite, flags);
+						if (!SUCCEEDED(hr))
+						{
+							printf("Unable to release buffer: %x\n", hr);
+							stillPlaying = false;
+						}
+					}
+				} else if (padding == 0 && pAudioStream->getAvailableFrames() == 0) { // no data available but data needed, feed 0 data
+					hr = pRenderClient->GetBuffer(framesAvailable, &pData);
+					if (SUCCEEDED(hr))
+					{
+						SecureZeroMemory(pData, framesAvailable);
+						hr = pRenderClient->ReleaseBuffer(framesAvailable, flags);
+						if (!SUCCEEDED(hr))
+						{
+							printf("Unable to release buffer: %x\n", hr);
+							stillPlaying = false;
+						}
+					}
+
+				}
+            }
+            break;
+        }
+    }
+	return 0;
+}
+
+DWORD AudioLibrary::InnerAudioEngine::captureThreadFunction(LPVOID Context)
+{
+    InnerAudioEngine *engine = static_cast<InnerAudioEngine *>(Context);
+	return engine->captureAudioStream();
+}
+
+DWORD AudioLibrary::InnerAudioEngine::renderThreadFunction(LPVOID Context)
+{
+    InnerAudioEngine *engine = static_cast<InnerAudioEngine *>(Context);
+	return engine->renderAudioStream();
+}
+
+HRESULT AudioLibrary::InnerAudioEngine::startAudioStream()
+{
+    HRESULT hr = S_OK;
+	
+	pAudioStream->initialize(captureBufferFrameCount, renderBufferFrameCount);
+	pAudioStream->openWriter();
+	
+	// start threads:
+    captureThread = CreateThread(NULL, 0, captureThreadFunction, this, 0, NULL);
+	renderThread = CreateThread(NULL, 0, renderThreadFunction, this, 0, NULL);
+
+	hr = pCaptureAudioClient->Start();  // Start recording.
+	if(FAILED(hr)) return hr;
+	hr = pRenderAudioClient->Start();  // Start playing.
+	if(FAILED(hr)) return hr;
+
+	audioStreamStatus = true;
+	return hr;
+}
+
+HRESULT AudioLibrary::InnerAudioEngine::stopAudioStream()
+{
+    HRESULT hr = S_OK;
+	// make event to shut down the threads
+	if(captureShutdownEvent) {
+		SetEvent(captureShutdownEvent);
+	}
+	if(renderShutdownEvent) {
+		SetEvent(renderShutdownEvent);
+	}
+	
+    hr = pCaptureAudioClient->Stop();  // Stop recording.
+	if(FAILED(hr)) return hr;
+    hr = pRenderAudioClient->Stop();  // Stop playing.
+	if(FAILED(hr)) return hr;
+	pAudioStream->closeWriter();
+
+	// Abort any thread that is still alive after shutdown
+    if (captureThread)
+    {
+        WaitForSingleObject(captureThread, INFINITE);
+        CloseHandle(captureThread);
+        captureThread = NULL;
+    }
+    if (renderThread)
+    {
+        WaitForSingleObject(renderThread, INFINITE);
+        CloseHandle(renderThread);
+        renderThread = NULL;
+    }
+
+	audioStreamStatus = false;
+	return true;
+}
+
+HRESULT AudioLibrary::InnerAudioEngine::volumeUp(float fLevel)
+{
+    HRESULT hr = S_OK;
+	
+	float res;
+	hr = pAudioVolume->GetMasterVolume(&res);
+	if(FAILED(hr)) return hr;
+
+	res += fLevel;
+	if(res > 1.0f) res = 1.0f;
+
+	hr = pAudioVolume->SetMasterVolume(res, NULL);
+	if(FAILED(hr)) return hr;
+
+	return res;
+}
+
+HRESULT AudioLibrary::InnerAudioEngine::volumeDown(float fLevel)
+{
+    HRESULT hr = S_OK;
+	
+	float res;
+	hr = pAudioVolume->GetMasterVolume(&res);
+	if(FAILED(hr)) return hr;
+
+	res -= fLevel;
+	if(res < 0.0f) res = 0.0f;
+
+	hr = pAudioVolume->SetMasterVolume(res, NULL);
+	if(FAILED(hr)) return hr;
+
+	return res;
+}
+
+HRESULT AudioLibrary::InnerAudioEngine::setVolume(float fLevel)
+{
+    HRESULT hr = S_OK;
+	
+	float res = fLevel;
+	if(res < 0.0f) res = 0.0f;
+	if(res > 1.0f) res = 1.0f;
+	hr = pAudioVolume->SetMasterVolume(res, NULL);
+	if(FAILED(hr)) return hr;
+
+	return res;
+}
+
+HRESULT AudioLibrary::InnerAudioEngine::toggleMute()
+{
+    HRESULT hr = S_OK;
+	
+	BOOL mute;
+	hr = pAudioVolume->GetMute(&mute);
+	if(FAILED(hr)) return hr;
+
+	hr = pAudioVolume->SetMute(!mute, NULL);
+	if(FAILED(hr)) return hr;
+
+	return hr;
+}
+
+HRESULT AudioLibrary::InnerAudioEngine::handleStreamSwitchEvent()
+{
+//    HRESULT hr;
+//
+//    assert(inStreamSwitch);
+//    //
+//    //  Step 1.  Stop capturing.
+//    //
+//    hr = pCaptureAudioClient->Stop();
+//    if (FAILED(hr))
+//    {
+//        printf("Unable to stop audio client during stream switch: %x\n", hr);
+//        goto ErrorExit;
+//    }
+//
+//    //
+//    //  Step 2.  Release our resources.  Note that we don't release the mix format, we need it for step 6.
+//    //
+//    hr = _AudioSessionControl->UnregisterAudioSessionNotification(this);
+//    if (FAILED(hr))
+//    {
+//        printf("Unable to stop audio client during stream switch: %x\n", hr);
+//        goto ErrorExit;
+//    }
+//
+//    SafeRelease(&_AudioSessionControl);
+//    SafeRelease(&_CaptureClient);
+//    SafeRelease(&_AudioClient);
+//    SafeRelease(&_Endpoint);
+//
+//    //
+//    //  Step 3.  Wait for the default device to change.
+//    //
+//    //  There is a race between the session disconnect arriving and the new default device 
+//    //  arriving (if applicable).  Wait the shorter of 500 milliseconds or the arrival of the 
+//    //  new default device, then attempt to switch to the default device.  In the case of a 
+//    //  format change (i.e. the default device does not change), we artificially generate  a
+//    //  new default device notification so the code will not needlessly wait 500ms before 
+//    //  re-opening on the new format.  (However, note below in step 6 that in this SDK 
+//    //  sample, we are unlikely to actually successfully absorb a format change, but a 
+//    //  real audio application implementing stream switching would re-format their 
+//    //  pipeline to deliver the new format).  
+//    //
+//    DWORD waitResult = WaitForSingleObject(_StreamSwitchCompleteEvent, 500);
+//    if (waitResult == WAIT_TIMEOUT)
+//    {
+//        printf("Stream switch timeout - aborting...\n");
+//        goto ErrorExit;
+//    }
+//
+//    //
+//    //  Step 4.  If we can't get the new endpoint, we need to abort the stream switch.  If there IS a new device,
+//    //          we should be able to retrieve it.
+//    //
+//    hr = _DeviceEnumerator->GetDefaultAudioEndpoint(eCapture, _EndpointRole, &_Endpoint);
+//    if (FAILED(hr))
+//    {
+//        printf("Unable to retrieve new default device during stream switch: %x\n", hr);
+//        goto ErrorExit;
+//    }
+//    //
+//    //  Step 5 - Re-instantiate the audio client on the new endpoint.
+//    //
+//    hr = _Endpoint->Activate(__uuidof(IAudioClient), CLSCTX_INPROC_SERVER, NULL, reinterpret_cast<void **>(&_AudioClient));
+//    if (FAILED(hr))
+//    {
+//        printf("Unable to activate audio client on the new endpoint: %x.\n", hr);
+//        goto ErrorExit;
+//    }
+//    //
+//    //  Step 6 - Retrieve the new mix format.
+//    //
+//    WAVEFORMATEX *wfxNew;
+//    hr = _AudioClient->GetMixFormat(&wfxNew);
+//    if (FAILED(hr))
+//    {
+//        printf("Unable to retrieve mix format for new audio client: %x.\n", hr);
+//        goto ErrorExit;
+//    }
+//
+//    //
+//    //  Note that this is an intentionally naive comparison.  A more sophisticated comparison would
+//    //  compare the sample rate, channel count and format and apply the appropriate conversions into the capture pipeline.
+//    //
+//    if (memcmp(_MixFormat, wfxNew, sizeof(WAVEFORMATEX) + wfxNew->cbSize) != 0)
+//    {
+//        printf("New mix format doesn't match old mix format.  Aborting.\n");
+//        CoTaskMemFree(wfxNew);
+//        goto ErrorExit;
+//    }
+//    CoTaskMemFree(wfxNew);
+//
+//    //
+//    //  Step 7:  Re-initialize the audio client.
+//    //
+//    if (!InitializeAudioEngine())
+//    {
+//        goto ErrorExit;
+//    }
+//
+//    //
+//    //  Step 8: Re-register for session disconnect notifications.
+//    //
+//    hr = _AudioClient->GetService(IID_PPV_ARGS(&_AudioSessionControl));
+//    if (FAILED(hr))
+//    {
+//        printf("Unable to retrieve session control on new audio client: %x\n", hr);
+//        goto ErrorExit;
+//    }
+//    hr = _AudioSessionControl->RegisterAudioSessionNotification(this);
+//    if (FAILED(hr))
+//    {
+//        printf("Unable to retrieve session control on new audio client: %x\n", hr);
+//        goto ErrorExit;
+//    }
+//
+//    //
+//    //  Reset the stream switch complete event because it's a manual reset event.
+//    //
+//    ResetEvent(_StreamSwitchCompleteEvent);
+//    //
+//    //  And we're done.  Start capturing again.
+//    //
+//    hr = _AudioClient->Start();
+//    if (FAILED(hr))
+//    {
+//        printf("Unable to start the new audio client: %x\n", hr);
+//        goto ErrorExit;
+//    }
+//
+//    inStreamSwitch = false;
+//    return true;
+//
+//ErrorExit:
+//    inStreamSwitch = false;
+//    return false;
+	return true;
+}
+
+HRESULT AudioLibrary::InnerAudioEngine::OnSessionDisconnected(AudioSessionDisconnectReason DisconnectReason)
+{
+    if (DisconnectReason == DisconnectReasonDeviceRemoval)
+    {
+        //
+        //  The stream was disconnected because the device we're capturing to was removed.
+        //
+        //  We want to reset the stream switch complete event (so we'll block when the HandleStreamSwitchEvent function
+        //  waits until the default device changed event occurs).
+        //
+        //  Note that we don't set the _StreamSwitchCompleteEvent - that will be set when the OnDefaultDeviceChanged event occurs.
+        //
+        inStreamSwitch = true;
+        SetEvent(streamSwitchEvent);
+    }
+    if (DisconnectReason == DisconnectReasonFormatChanged)
+    {
+        //
+        //  The stream was disconnected because the format changed on our capture device.
+        //
+        //  We want to flag that we're in a stream switch and then set the stream switch event (which breaks out of the capturer).  We also
+        //  want to set the _StreamSwitchCompleteEvent because we're not going to see a default device changed event after this.
+        //
+        inStreamSwitch = true;
+        SetEvent(streamSwitchEvent);
+        SetEvent(streamSwitchCompleteEvent);
+    }
+    return S_OK;
+}
+
+HRESULT AudioLibrary::InnerAudioEngine::OnDefaultDeviceChanged(EDataFlow Flow, ERole Role, LPCWSTR /*NewDefaultDeviceId*/)
+{
+    if (Flow == eCapture || Flow == eRender)
+    {
+        //
+        //  The default capture/render device for our was changed.  
+        //
+        //  If we're not in a stream switch already, we want to initiate a stream switch event.  
+        //  We also we want to set the stream switch complete event.  That will signal the capture thread that it's ok to re-initialize the
+        //  audio capturer.
+        //
+        if (!inStreamSwitch)
+        {
+            inStreamSwitch = true;
+            SetEvent(streamSwitchEvent);
+        }
+        SetEvent(streamSwitchCompleteEvent);
+    }
+    return S_OK;
+}
+
+HRESULT AudioLibrary::InnerAudioEngine::QueryInterface(REFIID Iid, void **Object)
+{
+    if (Object == NULL)
+    {
+        return E_POINTER;
+    }
+    *Object = NULL;
+
+    if (Iid == IID_IUnknown)
+    {
+        *Object = static_cast<IUnknown *>(static_cast<IAudioSessionEvents *>(this));
+        AddRef();
+    }
+    else if (Iid == __uuidof(IMMNotificationClient))
+    {
+        *Object = static_cast<IMMNotificationClient *>(this);
+        AddRef();
+    }
+    else if (Iid == __uuidof(IAudioSessionEvents))
+    {
+        *Object = static_cast<IAudioSessionEvents *>(this);
+        AddRef();
+    }
+    else
+    {
+        return E_NOINTERFACE;
+    }
+    return S_OK;
+}
+
+ULONG AudioLibrary::InnerAudioEngine::AddRef()
+{
+    return InterlockedIncrement(&_RefCount);
+}
+
+ULONG AudioLibrary::InnerAudioEngine::Release()
+{
+    ULONG returnValue = InterlockedDecrement(&_RefCount);
+    if (returnValue == 0)
+    {
+        delete this;
+    }
+    return returnValue;
 }
 
 
@@ -782,5 +1348,9 @@ std::string AudioLibrary::AudioEngine::getErrorCodeString(HRESULT hres)
 		return "The audio stream was not stopped at the time of the Start call.";
 	case(AUDCLNT_E_EVENTHANDLE_NOT_SET):
 		return "Eventhandle is not set for the audio stream.";
+		// custom errors
+	case(CUSTOM_E_FORMAT_NOT_SET):
+		return "Format is not set.";
 	}
 }
+

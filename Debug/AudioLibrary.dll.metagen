@@ -61,16 +61,14 @@ Class EffectsLibrary.EffectsCollection: AutoLayout, AnsiClass, Class, Public, Be
     moveUp(Int32): PrivateScope, Public, HideBySig
     moveDown(Int32): PrivateScope, Public, HideBySig
 Class AudioLibrary.AudioEngine: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
-    Void .ctor(UInt32): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+    Void .ctor(UInt32, Boolean): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
   Methods:
-    engineStatus(): PrivateScope, Public, HideBySig
     getRenderDevices(): PrivateScope, Public, HideBySig
     getCaptureDevices(): PrivateScope, Public, HideBySig
     setRenderDevice(UInt32): PrivateScope, Public, HideBySig
     setCaptureDevice(UInt32): PrivateScope, Public, HideBySig
     setDefaultRenderDevice(): PrivateScope, Public, HideBySig
     setDefaultCaptureDevice(): PrivateScope, Public, HideBySig
-    initializeDevices(): PrivateScope, Public, HideBySig
     startAudioStream(): PrivateScope, Public, HideBySig
     stopAudioStream(): PrivateScope, Public, HideBySig
     volumeDown(Single): PrivateScope, Public, HideBySig
@@ -78,5 +76,6 @@ Class AudioLibrary.AudioEngine: AutoLayout, AnsiClass, Class, Public, BeforeFiel
     setVolume(Single): PrivateScope, Public, HideBySig
     toggleMute(): PrivateScope, Public, HideBySig
     dispose(): PrivateScope, Public, HideBySig
+    initialize(): PrivateScope, Public, HideBySig
     getErrorCode(Int32 IsLong): PrivateScope, Public, Static, HideBySig
     Failed(Int32 IsLong): PrivateScope, Public, Static, HideBySig

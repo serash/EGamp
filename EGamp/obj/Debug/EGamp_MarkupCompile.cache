@@ -4,16 +4,16 @@
 winexe
 C#
 .cs
-C:\Users\dries\Documents\GitHub\EGamp\EGamp\obj\Debug\
+E:\GitHub\EGamp\EGamp\obj\Debug\
 EGamp
 none
 false
 DEBUG;TRACE
-C:\Users\dries\Documents\GitHub\EGamp\EGamp\App.xaml
+E:\GitHub\EGamp\EGamp\App.xaml
 42034051281
 
 12117821380
-13-472378909
+13759651229
 MainWindow.xaml;Visualization\CustomSlider.xaml;Visualization\EffectCollection.xaml;Visualization\EffectVisualization.xaml;
 
 False
