@@ -1,25 +1,25 @@
-﻿Build started 25/09/2012 20:07:48.
+﻿Build started 26/09/2012 21:36:32.
      1>Project "E:\GitHub\EGamp\AudioLibrary\AudioLibrary.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
          C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\CL.exe /c /AI"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\\" /AI"C:\Program Files (x86)\Windows Kits\8.0\References\CommonConfiguration\Neutral" /AI"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\Facades\\" /Zi /clr /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDLL /D _UNICODE /D UNICODE /EHa /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"stdafx.h" /Fp"Debug\AudioLibrary.pch" /Fo"Debug\\" /Fd"Debug\vc110.pdb" /TP /FU"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\mscorlib.dll" /FU"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.Data.dll" /FU"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.dll" /FU"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.Xml.dll" /analyze- /errorReport:prompt /clr:nostdlib AudioLibrary.cpp
          AudioLibrary.cpp
      1>e:\github\egamp\audiolibrary\EffectsLibrary.h(35): warning C4677: 'valueChanged': signature of non-private member contains assembly private type 'EffectsLibrary::UpdateEventHandler'
                  e:\github\egamp\audiolibrary\EffectsLibrary.h(25) : see declaration of 'EffectsLibrary::UpdateEventHandler'
-     1>AudioLibrary.cpp(655): warning C4101: 'waveFormat' : unreferenced local variable
-     1>AudioLibrary.cpp(673): warning C4101: 'waveFormat' : unreferenced local variable
-     1>AudioLibrary.cpp(697): warning C4101: 'waveFormat' : unreferenced local variable
-     1>AudioLibrary.cpp(989): warning C4244: 'return' : conversion from 'float' to 'HRESULT', possible loss of data
-     1>AudioLibrary.cpp(1006): warning C4244: 'return' : conversion from 'float' to 'HRESULT', possible loss of data
-     1>AudioLibrary.cpp(1019): warning C4244: 'return' : conversion from 'float' to 'HRESULT', possible loss of data
+     1>AudioLibrary.cpp(656): warning C4101: 'waveFormat' : unreferenced local variable
+     1>AudioLibrary.cpp(674): warning C4101: 'waveFormat' : unreferenced local variable
+     1>AudioLibrary.cpp(698): warning C4101: 'waveFormat' : unreferenced local variable
+     1>AudioLibrary.cpp(990): warning C4244: 'return' : conversion from 'float' to 'HRESULT', possible loss of data
+     1>AudioLibrary.cpp(1007): warning C4244: 'return' : conversion from 'float' to 'HRESULT', possible loss of data
+     1>AudioLibrary.cpp(1020): warning C4244: 'return' : conversion from 'float' to 'HRESULT', possible loss of data
      1>e:\github\egamp\audiolibrary\stdafx.h(36): warning C4244: 'return' : conversion from 'float' to 'DWORD', possible loss of data
-                 AudioLibrary.cpp(286) : see reference to function template instantiation 'T LinearInterpolation<DWORD>(T,T,float)' being compiled
+                 AudioLibrary.cpp(287) : see reference to function template instantiation 'T LinearInterpolation<DWORD>(T,T,float)' being compiled
                  with
                  [
                      T=DWORD
                  ]
-                 AudioLibrary.cpp(266) : see reference to function template instantiation 'HRESULT AudioLibrary::AudioStream::resample<DWORD>(void)' being compiled
+                 AudioLibrary.cpp(267) : see reference to function template instantiation 'HRESULT AudioLibrary::AudioStream::resample<DWORD>(void)' being compiled
      1>e:\github\egamp\audiolibrary\stdafx.h(38): warning C4244: 'return' : conversion from 'float' to 'DWORD', possible loss of data
-     1>e:\github\egamp\audiolibrary\audiolibrary.cpp(1355): warning C4715: 'AudioLibrary::AudioEngine::getErrorCodeString' : not all control paths return a value
+     1>e:\github\egamp\audiolibrary\audiolibrary.cpp(1356): warning C4715: 'AudioLibrary::AudioEngine::getErrorCodeString' : not all control paths return a value
        Link:
          C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"E:\GitHub\EGamp\Debug\AudioLibrary.dll" /INCREMENTAL /NOLOGO user32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"E:\GitHub\EGamp\Debug\AudioLibrary.pdb" /ASSEMBLYDEBUG /TLBID:1 /DYNAMICBASE /FIXED:NO /NXCOMPAT /MACHINE:X86 /DLL Debug\app.res
          Debug\AssemblyInfo.obj
@@ -32,4 +32,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:00.93
+Time Elapsed 00:00:02.49

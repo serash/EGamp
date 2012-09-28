@@ -165,6 +165,7 @@ WAVEFORMATEX *AudioLibrary::AudioStream::getCaptureFormat()
 	return captureFormat;
 }
 
+// TODO fix the store / load data to buffer data if not all is read/stored
 HRESULT AudioLibrary::AudioStream::storeNullData(UINT32 numFramesAvailable)
 {
 	UINT32 numBytesAvailable = numFramesAvailable*captureFormat->nBlockAlign;
@@ -216,7 +217,7 @@ HRESULT AudioLibrary::AudioStream::loadData(BYTE *pData, UINT32 numFramesAvailab
 UINT32 AudioLibrary::AudioStream::getAvailableFrames() 
 {
 	if (dataIsReady == 1)
-		return numAvailableFrames;
+		return numAvailableFrames / renderFormat->nBlockAlign;
 	else 
 		return 0;
 }
