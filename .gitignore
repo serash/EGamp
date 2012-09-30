@@ -1,0 +1,9 @@
+# ignore folders:
+_ReSharper.EGamp/*
+Debug/*
+ipch/*
+TestAudioLibrary/*
+AudioLibrary/Debug/*
+EGamp/bin/*
+EGamp/obj/*
+EGamp/Properties/*
