@@ -1,8 +1,0 @@
-C:\Users\dries\Documents\GitHub\EGamp\TestAudioLibrary\bin\Debug\TestAudioLibrary.exe.config
-C:\Users\dries\Documents\GitHub\EGamp\TestAudioLibrary\bin\Debug\TestAudioLibrary.exe
-C:\Users\dries\Documents\GitHub\EGamp\TestAudioLibrary\bin\Debug\TestAudioLibrary.pdb
-C:\Users\dries\Documents\GitHub\EGamp\TestAudioLibrary\bin\Debug\AudioLibrary.dll
-C:\Users\dries\Documents\GitHub\EGamp\TestAudioLibrary\bin\Debug\AudioLibrary.pdb
-C:\Users\dries\Documents\GitHub\EGamp\TestAudioLibrary\obj\Debug\TestAudioLibrary.csprojResolveAssemblyReference.cache
-C:\Users\dries\Documents\GitHub\EGamp\TestAudioLibrary\obj\Debug\TestAudioLibrary.exe
-C:\Users\dries\Documents\GitHub\EGamp\TestAudioLibrary\obj\Debug\TestAudioLibrary.pdb
