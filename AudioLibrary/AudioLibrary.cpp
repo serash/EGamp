@@ -100,10 +100,8 @@ AudioLibrary::AudioStream::AudioStream()
 {
 	renderFormat = NULL;
 	captureFormat = NULL;
-	capturedData = NULL;
-	renderData = NULL;
-	numRenderFrames = 0;
-	numCaptureFrames = 0;
+	buffer = NULL;
+	bufSize = 0;
 	currentFlags = 0;
 }
 
@@ -115,17 +113,21 @@ AudioLibrary::AudioStream::~AudioStream()
 HRESULT AudioLibrary::AudioStream::initialize(UINT32 numCaptureFrames_, UINT32 numRenderFrames_)
 {
 	// 2 buffers, one for storing and one for loading (keeps swicthing)
-	numCaptureFrames = numCaptureFrames_;
-	numRenderFrames = numRenderFrames_;
+	bufSize = max(numCaptureFrames_,numRenderFrames_);
 	dataIsReady = 0;
 	if(!renderFormat) return CUSTOM_E_FORMAT_NOT_SET;
 	if(!captureFormat) return CUSTOM_E_FORMAT_NOT_SET;
-	if(capturedData)
-		free(capturedData);
-	if(renderData)
-		free(renderData);
-	capturedData = (BYTE*) malloc(sizeof(BYTE)*numCaptureFrames*renderFormat->nBlockAlign);
-	renderData = (BYTE*) malloc(sizeof(BYTE)*numRenderFrames*captureFormat->nBlockAlign);
+	storedDataId = -1;
+	numAvailableFrames = 0;
+	if(buffer) {
+		free(buffer[0]);
+		free(buffer[1]);
+	} else {
+		buffer = (BYTE **)malloc(sizeof(BYTE *)*bufSize);
+	}
+	buffer[0] = (BYTE*) malloc(sizeof(BYTE)*bufSize*renderFormat->nBlockAlign);
+	buffer[1] = (BYTE*) malloc(sizeof(BYTE)*bufSize*captureFormat->nBlockAlign);
+
 	DWORD LCMSampleRate = LeastCommonMultiple(renderFormat->nSamplesPerSec, captureFormat->nSamplesPerSec);
 	renderSamplePos = LCMSampleRate / renderFormat->nBlockAlign;
 	captureSamplePos = LCMSampleRate / captureFormat->nBlockAlign;
@@ -169,11 +171,13 @@ WAVEFORMATEX *AudioLibrary::AudioStream::getCaptureFormat()
 HRESULT AudioLibrary::AudioStream::storeNullData(UINT32 numFramesAvailable)
 {
 	UINT32 numBytesAvailable = numFramesAvailable*captureFormat->nBlockAlign;
-	if(numFramesAvailable > numCaptureFrames)
+	if(numFramesAvailable > bufSize)
 		return E_INVALIDARG;
 	
 	// store zeros in buffer
-	SecureZeroMemory(capturedData, numBytesAvailable);
+	
+	storedDataId = (storedDataId + 1) % 2;
+	SecureZeroMemory(buffer[storedDataId], numBytesAvailable);
 	numAvailableFrames = numBytesAvailable;
 	convertWaveFormat();
 
@@ -183,27 +187,29 @@ HRESULT AudioLibrary::AudioStream::storeNullData(UINT32 numFramesAvailable)
 HRESULT AudioLibrary::AudioStream::storeData(const BYTE *pData, UINT32 numFramesAvailable)
 {
 	UINT32 numBytesAvailable = numFramesAvailable*captureFormat->nBlockAlign;
-	if(numFramesAvailable > numCaptureFrames)
+	if(numFramesAvailable > bufSize)
 		return E_INVALIDARG;
 	
 	// store from pData
-	memcpy(capturedData, pData, numBytesAvailable); 
+	storedDataId = (storedDataId + 1) % 2;
+	memcpy(buffer[storedDataId], pData, numBytesAvailable); 
 	numAvailableFrames = numBytesAvailable;
 	convertWaveFormat();
 
-    captureWriter->writeData(capturedData, numBytesAvailable);
+    captureWriter->writeData(buffer[storedDataId], numBytesAvailable);
 	return S_OK;
 }
 
 HRESULT AudioLibrary::AudioStream::loadData(BYTE *pData, UINT32 numFramesAvailable, DWORD *flags)
 {
 	UINT32 numBytesAvailable = numFramesAvailable*renderFormat->nBlockAlign;
-	if(numFramesAvailable > numRenderFrames)
+	if(numFramesAvailable > bufSize)
 		return E_INVALIDARG;
 
 	// load to pData
-	memcpy(pData, renderData, numBytesAvailable); 
+	memcpy(pData, buffer[storedDataId], numBytesAvailable); 
 	dataIsReady = 0;
+	storedDataId = (storedDataId + 1) % 2;
 	
 	// set flags
 	if(numBytesAvailable == 0) currentFlags |= AUDCLNT_BUFFERFLAGS_SILENT;
@@ -238,13 +244,11 @@ void AudioLibrary::AudioStream::closeWriter()
 
 void AudioLibrary::AudioStream::dispose() 
 {
-	if(renderData) {
-		free(renderData);
-		renderData = NULL;
-	}
-	if(capturedData) {
-		free(capturedData);
-		capturedData = NULL;
+	if(buffer) {
+		free(buffer[0]);
+		free(buffer[1]);
+		free(buffer);
+		buffer = NULL;
 	}
 	if (captureFormat)
     {
@@ -261,9 +265,7 @@ void AudioLibrary::AudioStream::dispose()
 DWORD AudioLibrary::AudioStream::convertWaveFormat()
 {
 	HRESULT hr = S_OK;
-	if(renderSamplePos == captureSamplePos)
-		memcpy(renderData, capturedData, min(numCaptureFrames, numRenderFrames));
-	else
+	if(renderSamplePos != captureSamplePos)
 		hr = resample<DWORD>();
 	dataIsReady = 1;
 	return 0;
@@ -274,12 +276,12 @@ template <class SAMPLETYPE>  HRESULT AudioLibrary::AudioStream::resample()
 	HRESULT hr = S_OK;
 	UINT32 captureIdx = 1;
 	UINT32 captureCount = captureSamplePos;
-	UINT32 totalCaptures = numCaptureFrames*captureFormat->nBlockAlign;
+	UINT32 totalCaptures = numAvailableFrames*captureFormat->nBlockAlign;
 	UINT32 renderCount = 0;
 	// reinterpret cast here to valid size of the numbers
-	SAMPLETYPE *source = reinterpret_cast<SAMPLETYPE *>(capturedData);
-	SAMPLETYPE *destination = reinterpret_cast<SAMPLETYPE *>(renderData);
-	for(UINT32 i = 0; i < numCaptureFrames; i+=renderFormat->nSamplesPerSec) {
+	SAMPLETYPE *source = reinterpret_cast<SAMPLETYPE *>(buffer[storedDataId]);
+	SAMPLETYPE *destination = reinterpret_cast<SAMPLETYPE *>(buffer[storedDataId]);
+	for(UINT32 i = 0; i < numAvailableFrames; i+=renderFormat->nSamplesPerSec) {
 		while(captureCount < renderCount && captureIdx < totalCaptures) {
 			captureCount += captureSamplePos;
 			captureIdx++;

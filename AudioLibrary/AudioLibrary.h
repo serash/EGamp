@@ -75,15 +75,17 @@ namespace AudioLibrary {
 		template <class SAMPLETYPE> HRESULT resample();
 		DWORD LeastCommonMultiple(DWORD rate1, DWORD rate2); 
 		DWORD GreatestCommonDivisor(DWORD rate1, DWORD rate2);
+
 		WAVEFORMATEX *renderFormat;
 		WAVEFORMATEX *captureFormat;
 		DWORD renderSamplePos;
 		DWORD captureSamplePos;
-		BYTE *capturedData;
-		BYTE *renderData;
-		UINT32 numCaptureFrames;
+		//BYTE *capturedData;
+		//BYTE *renderData;
 		UINT32 numAvailableFrames;
-		UINT32 numRenderFrames;
+		UINT32 bufSize;
+		BYTE **buffer;
+		INT32 storedDataId;
 		INT32 dataIsReady;
 		DWORD currentFlags;
 		DWORD convertWaveFormat();
