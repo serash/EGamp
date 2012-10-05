@@ -12,7 +12,7 @@ EffectsLibrary::EffectsCollection::EffectsCollection()
 
 bool EffectsLibrary::EffectsCollection::moveUp(int idx)
 {
-    if(idx + 1 < Count) 
+	if(idx + 1 < effects.size) 
         return swap(idx, idx + 1);
 	else
 		return false;
@@ -28,9 +28,9 @@ bool EffectsLibrary::EffectsCollection::moveDown(int idx)
 
 bool EffectsLibrary::EffectsCollection::swap(int idx1, int idx2)
 {
-    IEffect ^temp = this[idx1];
-    this[idx1] = this[idx2];
-    this[idx2] = temp;
+    IEffect *temp = effects[idx1];
+    effects[idx1] = effects[idx2];
+    effects[idx2] = temp;
 	return true;
 }
 
@@ -43,7 +43,9 @@ bool EffectsLibrary::EffectsCollection::swap(int idx1, int idx2)
 EffectsLibrary::Amplifier::Amplifier()
 {
 	name = "Amplifier";
-	amplify = gcnew EffectParameter(1, 20, 1, "Amplifier");
+	amplify = new EffectParameter(1, 20, 1, "Amplifier");
+	hookEvent(&valueChanged);
+	__hook(&UpdateEventSource::ThrowUpdateEvent, valueChanged, &amplify::amplify->);
 	amplify->valueChanged += gcnew UpdateEventHandler(this, &EffectsLibrary::Amplifier::update);
 }
 
@@ -164,7 +166,7 @@ void EffectsLibrary::Tremolo::Sample(double &spl0, double &spl1)
    ===   IMPLEMENTATION   ===
    ========================== */
 
-EffectsLibrary::EffectParameter::EffectParameter(double min_, double max_, double defaultVal_, String ^name_)
+EffectsLibrary::EffectParameter::EffectParameter(double min_, double max_, double defaultVal_, std::string name_)
 {
 	min = min_;
 	max = max_;
@@ -182,10 +184,10 @@ void EffectsLibrary::EffectParameter::setValue(double value_)
 {
 	if(value_ >= min && value_ <= max)
 		value = value_;
-	valueChanged();
+	__raise valueChanged.ThrowUpdateEvent();
 }
 
-String ^EffectsLibrary::EffectParameter::getName()
+std::string EffectsLibrary::EffectParameter::getName()
 {
 	return name;
 }

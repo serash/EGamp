@@ -22,34 +22,47 @@ namespace EffectsLibrary {
     const double E =  2.71828182;
 
 	// Helper Classes/Interfaces
-	private delegate void UpdateEventHandler();
-	public ref class EffectParameter {
+	private class UpdateEventSource {
 	public:
-		EffectParameter(double min_, double max_, double defaultVal_, String ^name_);
+		__event void ThrowUpdateEvent();
+	};
+	public class EffectParameter {
+	public:
+		EffectParameter(double min_, double max_, double defaultVal_, std::string name_);
 		double getValue();
 		void setValue(double value_);
-		String ^getName();
+		std::string getName();
 		double getMin();
 		double getMax();
 		double getDefaultVal();
-		event UpdateEventHandler ^valueChanged;
+
+		void hookEvent(UpdateEventSource* pSource) {
+			__hook(&UpdateEventSource::ThrowUpdateEvent, pSource, &IEffect::update);
+		}
+
+		void unhookEvent(UpdateEventSource* pSource) {
+			__unhook(&UpdateEventSource::ThrowUpdateEvent, pSource, &IEffect::update);
+		}
 	private:
 		double min;
 		double max;
 		double defaultVal;
 		double value;
-		String ^name;
+		std::string name;
+		UpdateEventSource valueChanged;
 	};
-	public interface class IEffect {
-        void initialize();
-		void block();
-		void update();
-		void Sample(double &spl0, double &spl1);
-		String ^getName();
+	public class IEffect {
+	public:
+        virtual void initialize();
+		virtual void block();
+		virtual void update();
+		virtual void Sample(double &spl0, double &spl1);
+		virtual std::string getName();
+	private:
 	};
 
 	//Effects
-	public ref class Amplifier : IEffect
+	public class Amplifier : IEffect
 	{
 	public:
 		Amplifier();
@@ -57,14 +70,14 @@ namespace EffectsLibrary {
 		virtual void block();
 		virtual void update();
 		virtual void Sample(double &spl0, double &spl1);
-		virtual String ^getName();
-		EffectParameter ^getAmplify();
+		virtual std::string getName();
+		EffectParameter *getAmplify();
 	private:
-		String ^name;
-		EffectParameter ^amplify;
+		std::string name;
+		EffectParameter *amplify;
 		double amp;
 	};
-	public ref class Tremolo : IEffect
+	public class Tremolo : IEffect
 	{
 	public:
 		Tremolo();
@@ -73,15 +86,15 @@ namespace EffectsLibrary {
 		virtual void block();
 		virtual void update();
 		virtual void Sample(double &spl0, double &spl1);
-		virtual String ^getName();
-		EffectParameter ^getFrequency();
-		EffectParameter ^getAmount();
-		EffectParameter ^getStereoSeperation();
+		virtual std::string getName();
+		EffectParameter *getFrequency();
+		EffectParameter *getAmount();
+		EffectParameter *getStereoSeperation();
 	private:
-		String ^name;
-		EffectParameter ^frequency;
-		EffectParameter ^amount;
-		EffectParameter ^stereoSeperation;
+		std::string name;
+		EffectParameter *frequency;
+		EffectParameter *amount;
+		EffectParameter *stereoSeperation;
 		DWORD sampleRate;
 		double adv;
 		double sep;
@@ -91,7 +104,7 @@ namespace EffectsLibrary {
 	};
 
 	// effects collection
-	public ref class EffectsCollection : List<IEffect ^>
+	public class EffectsCollection
 	{
 	public:
 		EffectsCollection(void);
@@ -99,6 +112,7 @@ namespace EffectsLibrary {
 		bool moveDown(int idx);
 	private:
 		bool swap(int idx1, int idx2);
+		std::vector<IEffect *> effects;
 	};
 }
 

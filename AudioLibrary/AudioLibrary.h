@@ -32,6 +32,7 @@ namespace AudioLibrary {
 	const BYTE WaveData[] = { 'd', 'a', 't', 'a'};
 
 	// Helper Classes/Structs
+	public delegate void SampleEventHandler(UINT32 left, UINT32 right);
 	struct WAVEHEADER
 	{
 		DWORD   dwRiff;                     // "RIFF"
@@ -113,7 +114,7 @@ namespace AudioLibrary {
 		HRESULT toggleMute();
 		void dispose();
 		HRESULT initialize();
-		
+
 		// Interface related
 		STDMETHOD_(ULONG, AddRef)();
 		STDMETHOD_(ULONG, Release)();
@@ -180,6 +181,7 @@ namespace AudioLibrary {
 	public ref class AudioEngine
 	{
 	public:
+		event SampleEventHandler ^sampleEvent;
 		AudioEngine(UINT32 _EngineLatencyInMS, bool enableStreamSwitch_);
 		array<String^> ^getRenderDevices();
 		array<String^> ^getCaptureDevices();
