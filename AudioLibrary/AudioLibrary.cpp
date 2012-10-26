@@ -196,7 +196,7 @@ HRESULT AudioLibrary::AudioStream::storeData(const BYTE *pData, UINT32 numFrames
 	numAvailableFrames = numBytesAvailable;
 	convertWaveFormat();
 
-    captureWriter->writeData(buffer[storedDataId], numBytesAvailable);
+    //captureWriter->writeData(buffer[storedDataId], numBytesAvailable);
 	return S_OK;
 }
 
@@ -215,7 +215,7 @@ HRESULT AudioLibrary::AudioStream::loadData(BYTE *pData, UINT32 numFramesAvailab
 	if(numBytesAvailable == 0) currentFlags |= AUDCLNT_BUFFERFLAGS_SILENT;
 	(*flags) |= currentFlags;
 
-    renderWriter->writeData(pData, numBytesAvailable);
+    //renderWriter->writeData(pData, numBytesAvailable);
 	return S_OK;
 
 }

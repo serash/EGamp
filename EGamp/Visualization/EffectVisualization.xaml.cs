@@ -28,7 +28,7 @@ namespace EGamp.Visualization
             set
             {
                 effect = value;
-                NameLabel.Content = effect.getName();
+                //NameLabel.Content = effect.getName();
                 //foreach (CustomSlider slider in effect.Sliders)
                 //{
                 //    Sliders.Children.Add(slider);

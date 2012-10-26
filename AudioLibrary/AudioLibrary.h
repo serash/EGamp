@@ -31,8 +31,11 @@ namespace AudioLibrary {
 	const BYTE WaveHeader[] = { 'R',   'I',   'F',   'F',  0x00,  0x00,  0x00,  0x00, 'W',   'A',   'V',   'E',   'f',   'm',   't',   ' ', 0x00, 0x00, 0x00, 0x00 };
 	const BYTE WaveData[] = { 'd', 'a', 't', 'a'};
 
-	// Helper Classes/Structs
-	public delegate void SampleEventHandler(UINT32 left, UINT32 right);
+	// Helper Classes/Structs	
+	private class SampleEventSource {
+	public:
+		__event void ThrowSampleEvent(UINT32 left, UINT32 right);
+	};
 	struct WAVEHEADER
 	{
 		DWORD   dwRiff;                     // "RIFF"
@@ -159,6 +162,7 @@ namespace AudioLibrary {
 		HANDLE captureSamplesReadyEvent;
 		HANDLE streamSwitchEvent;          // Set when the current session is disconnected or the default device changes.
 		HANDLE streamSwitchCompleteEvent;  // Set when the default device changed.
+		SampleEventSource *sampleEvent;
 
 		// Interface related
 		LONG _RefCount;
@@ -181,7 +185,6 @@ namespace AudioLibrary {
 	public ref class AudioEngine
 	{
 	public:
-		event SampleEventHandler ^sampleEvent;
 		AudioEngine(UINT32 _EngineLatencyInMS, bool enableStreamSwitch_);
 		array<String^> ^getRenderDevices();
 		array<String^> ^getCaptureDevices();

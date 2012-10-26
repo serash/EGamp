@@ -12,7 +12,7 @@ EffectsLibrary::EffectsCollection::EffectsCollection()
 
 bool EffectsLibrary::EffectsCollection::moveUp(int idx)
 {
-	if(idx + 1 < effects.size) 
+	if(idx + 1 < effects.size()) 
         return swap(idx, idx + 1);
 	else
 		return false;
@@ -44,19 +44,12 @@ EffectsLibrary::Amplifier::Amplifier()
 {
 	name = "Amplifier";
 	amplify = new EffectParameter(1, 20, 1, "Amplifier");
-	hookEvent(&valueChanged);
-	__hook(&UpdateEventSource::ThrowUpdateEvent, valueChanged, &amplify::amplify->);
-	amplify->valueChanged += gcnew UpdateEventHandler(this, &EffectsLibrary::Amplifier::update);
+	hookEvent(&amplify->valueChanged);
 }
 
 void EffectsLibrary::Amplifier::initialize()
 {
 	amp = 1;
-}
-
-EffectsLibrary::EffectParameter ^EffectsLibrary::Amplifier::getAmplify()
-{
-	return amplify;
 }
 
 void EffectsLibrary::Amplifier::block()
@@ -68,7 +61,7 @@ void EffectsLibrary::Amplifier::update()
     amp = sqrt(pow(10, amplify->getValue()/10));
 }
 
-String ^EffectsLibrary::Amplifier::getName()
+std::string EffectsLibrary::Amplifier::getName()
 {
 	return name;
 }
@@ -85,30 +78,16 @@ void EffectsLibrary::Amplifier::Sample(double &spl0, double &spl1)
    ===   IMPLEMENTATION   ===
    ========================== */
 
-EffectsLibrary::Tremolo::Tremolo()
-{
-	sampleRate = 44100;
-	name = "Tremolo";
-	UpdateEventHandler ^updateEvent = gcnew UpdateEventHandler(this, &EffectsLibrary::Tremolo::update);
-	frequency = gcnew EffectParameter(0, 100, 4, "frequency (Hz)");
-	frequency->valueChanged += updateEvent;
-	amount = gcnew EffectParameter(-60, 0, -6, "amount (dB)");
-	amount->valueChanged += updateEvent;
-	stereoSeperation = gcnew EffectParameter(0, 1, 0, "stereo separation (0..1)");
-	stereoSeperation->valueChanged += updateEvent;
-}
-
 EffectsLibrary::Tremolo::Tremolo(DWORD sampleRate_)
 {
 	sampleRate = sampleRate_;
 	name = "Tremolo";
-	UpdateEventHandler ^updateEvent = gcnew UpdateEventHandler(this, &EffectsLibrary::Tremolo::update);
-	frequency = gcnew EffectParameter(0, 100, 4, "frequency (Hz)");
-	frequency->valueChanged += updateEvent;
-	amount = gcnew EffectParameter(-60, 0, -6, "amount (dB)");
-	amount->valueChanged += updateEvent;
-	stereoSeperation = gcnew EffectParameter(0, 1, 0, "stereo separation (0..1)");
-	stereoSeperation->valueChanged += updateEvent;
+	frequency = new EffectParameter(0, 100, 4, "frequency (Hz)");
+	hookEvent(&frequency->valueChanged);
+	amount = new EffectParameter(-60, 0, -6, "amount (dB)");
+	hookEvent(&amount->valueChanged);
+	stereoSeperation = new EffectParameter(0, 1, 0, "stereo separation (0..1)");
+	hookEvent(&stereoSeperation->valueChanged);
 }
 
 void EffectsLibrary::Tremolo::initialize()
@@ -118,21 +97,6 @@ void EffectsLibrary::Tremolo::initialize()
     am = pow(2, 0 / 6);
     sc = 0.5 * am; 
 	am = 1 - am;
-}
-
-EffectsLibrary::EffectParameter ^EffectsLibrary::Tremolo::getFrequency()
-{
-	return frequency;
-}
-
-EffectsLibrary::EffectParameter ^EffectsLibrary::Tremolo::getAmount()
-{
-	return amount;
-}
-
-EffectsLibrary::EffectParameter ^EffectsLibrary::Tremolo::getStereoSeperation()
-{
-	return stereoSeperation;
 }
 
 void EffectsLibrary::Tremolo::block()
@@ -148,7 +112,7 @@ void EffectsLibrary::Tremolo::update()
 	am = 1 - am;
 }
 
-String ^EffectsLibrary::Tremolo::getName()
+std::string EffectsLibrary::Tremolo::getName()
 {
 	return name;
 }

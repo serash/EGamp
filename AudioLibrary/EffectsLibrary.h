@@ -26,6 +26,7 @@ namespace EffectsLibrary {
 	public:
 		__event void ThrowUpdateEvent();
 	};
+
 	public class EffectParameter {
 	public:
 		EffectParameter(double min_, double max_, double defaultVal_, std::string name_);
@@ -35,6 +36,21 @@ namespace EffectsLibrary {
 		double getMin();
 		double getMax();
 		double getDefaultVal();
+		UpdateEventSource valueChanged;
+	private:
+		double min;
+		double max;
+		double defaultVal;
+		double value;
+		std::string name;
+	};
+	public class IEffect {
+	public:
+		virtual void initialize() {}
+		virtual void block() {}
+		virtual void update() {}
+		virtual void Sample(double &spl0, double &spl1) {}
+		virtual std::string getName() { return "";}
 
 		void hookEvent(UpdateEventSource* pSource) {
 			__hook(&UpdateEventSource::ThrowUpdateEvent, pSource, &IEffect::update);
@@ -43,21 +59,6 @@ namespace EffectsLibrary {
 		void unhookEvent(UpdateEventSource* pSource) {
 			__unhook(&UpdateEventSource::ThrowUpdateEvent, pSource, &IEffect::update);
 		}
-	private:
-		double min;
-		double max;
-		double defaultVal;
-		double value;
-		std::string name;
-		UpdateEventSource valueChanged;
-	};
-	public class IEffect {
-	public:
-        virtual void initialize();
-		virtual void block();
-		virtual void update();
-		virtual void Sample(double &spl0, double &spl1);
-		virtual std::string getName();
 	private:
 	};
 
@@ -71,7 +72,6 @@ namespace EffectsLibrary {
 		virtual void update();
 		virtual void Sample(double &spl0, double &spl1);
 		virtual std::string getName();
-		EffectParameter *getAmplify();
 	private:
 		std::string name;
 		EffectParameter *amplify;
@@ -80,16 +80,12 @@ namespace EffectsLibrary {
 	public class Tremolo : IEffect
 	{
 	public:
-		Tremolo();
-		Tremolo(DWORD sampleRate_);
+		Tremolo(DWORD sampleRate_ = 44100);
         virtual void initialize();
 		virtual void block();
 		virtual void update();
 		virtual void Sample(double &spl0, double &spl1);
 		virtual std::string getName();
-		EffectParameter *getFrequency();
-		EffectParameter *getAmount();
-		EffectParameter *getStereoSeperation();
 	private:
 		std::string name;
 		EffectParameter *frequency;
